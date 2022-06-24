@@ -21,7 +21,7 @@ PurchaseProductSchema = new mongoose.Schema({
   },
   comment: {
     type: String,
-    maxlength: [500, "Comment can not be more than 500 character"],
+    maxlength: [5000, "Comment can not be more than 500 character"],
   },
   ownership: {
     type: String,
@@ -40,7 +40,13 @@ PurchaseProductSchema = new mongoose.Schema({
   QRCodeImage: {
     type: String,
   },
-  vender: {
+  venderName: {
+    type: String,
+  },
+  venderContact: {
+    type: String,
+  },
+  venderEmail: {
     type: String,
   },
   active: {
@@ -59,8 +65,7 @@ PurchaseProductSchema = new mongoose.Schema({
   modifiedAt: {
     type: Date,
   },
-  purchasedBy: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
-  custodian: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+  custodian: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
   productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
   officeId: { type: mongoose.Schema.Types.ObjectId, ref: "Office" },
 });
