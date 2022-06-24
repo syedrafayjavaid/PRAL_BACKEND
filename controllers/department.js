@@ -5,11 +5,11 @@ const asyncHandler = require("../middleware/async");
 const Department = require("../models/Department");
 
 exports.getDepartments = asyncHandler(async (req, res, next) => {
-  const Department = await Department.find();
+  const department = await Department.find();
   res.status(200).json({
     success: true,
-    count: Department.length,
-    data: Department,
+    count: department.length,
+    data: department,
   });
 });
 
@@ -24,23 +24,23 @@ exports.createDepartment = asyncHandler(async (req, res, next) => {
     req.body.DepartmentId = newDepartmentId;
   }
 
-  const Department = await Department.create(req.body);
+  const department = await Department.create(req.body);
   res.status(200).json({
     success: true,
-    data: Department,
+    data: department,
   });
 });
 
 exports.getDepartment = asyncHandler(async (req, res, next) => {
-  const Department = await Department.findById(req.params.id);
-  if (!Department) {
+  const department = await Department.findById(req.params.id);
+  if (!department) {
     return next(
       new ErrorResponse(`Department not found with id of ${req.params.id}`, 404)
     );
   }
   res.status(200).json({
     success: true,
-    data: Department,
+    data: department,
   });
 });
 
@@ -48,24 +48,24 @@ exports.updateDepartment = asyncHandler(async (req, res, next) => {
   const data = req.body;
   data.modifiedAt = Date.now();
 
-  const Department = await Department.findByIdAndUpdate(req.params.id, data, {
+  const department = await Department.findByIdAndUpdate(req.params.id, data, {
     new: true,
     runValidators: true,
   });
-  if (!Department) {
+  if (!department) {
     return next(
       new ErrorResponse(`Department not found with id of ${req.params.id}`, 404)
     );
   }
   res.status(200).json({
     success: true,
-    data: Department,
+    data: department,
   });
 });
 
 exports.deleteDepartment = asyncHandler(async (req, res, next) => {
-  const Department = await Department.findByIdAndDelete(req.params.id);
-  if (!Department) {
+  const department = await Department.findByIdAndDelete(req.params.id);
+  if (!department) {
     return next(
       new ErrorResponse(`Department not found with id of ${req.params.id}`, 404)
     );
