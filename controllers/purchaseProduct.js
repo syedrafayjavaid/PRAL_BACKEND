@@ -25,7 +25,7 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
   if (!getLastPurchaseProduct.length) {
     req.body.purchaseProductId = 1;
   } else {
-    const newInStock = getLastPurchaseProduct[0].purchaseProductId + 1;
+    const newInStock = parseInt(getLastPurchaseProduct[0].purchaseProductId) + 1;
     req.body.purchaseProductId = newInStock;
   }
 
@@ -292,6 +292,29 @@ exports.updatePurchaseProduct = asyncHandler(async (req, res, next) => {
   });
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 exports.deletePurchaseProduct = asyncHandler(async (req, res, next) => {
   const purchaseProduct = await PurchaseProduct.findByIdAndDelete(
     req.params.id
@@ -309,3 +332,22 @@ exports.deletePurchaseProduct = asyncHandler(async (req, res, next) => {
     msg: `Purchase Product deleted with id: ${req.params.id}`,
   });
 });
+
+
+// exports.searchFilters = asyncHandler(async (req, res, next) => {
+//   const purchaseProduct = await PurchaseProduct.findByIdAndDelete(
+//     req.params.id
+//   );
+//   if (!purchaseProduct) {
+//     return next(
+//       new ErrorResponse(
+//         `Purchase Product not found with id of ${req.params.id}`,
+//         404
+//       )
+//     );
+//   }
+//   res.status(201).json({
+//     success: true,
+//     msg: `Purchase Product deleted with id: ${req.params.id}`,
+//   });
+// });

@@ -20,7 +20,7 @@ exports.createBrand = asyncHandler(async (req, res, next) => {
   if (!getLatestbrand.length) {
     req.body.brandId = 1;
   } else {
-    const newBrandId = getLatestbrand[0].brandId + 1;
+    const newBrandId = parseInt(getLatestbrand[0].brandId) + 1;
     req.body.brandId = newBrandId;
   }
 

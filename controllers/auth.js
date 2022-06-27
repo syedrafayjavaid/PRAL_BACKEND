@@ -4,7 +4,8 @@ const User = require("../models/User");
 const uuid = require("uuid4");
 
 exports.getUsers = asyncHandler(async (req, res, next) => {
-  const users = await User.find();
+  console.log("Get All users is claaed");
+  const users = await User.find({});
 
   res.status(200).json({
     success: true,
@@ -20,7 +21,7 @@ exports.registerUser = asyncHandler(async (req, res, next) => {
   if (!getLastUser.length) {
     employeeId = 1;
   } else {
-    const newUser = getLastUser[0].employeeId + 1;
+    const newUser = parseInt(getLastUser[0].employeeId) + 1;
     employeeId = newUser;
   }
 
@@ -72,6 +73,37 @@ exports.deleteUser = asyncHandler(async (req, res, next) => {
     msg: `User deleted with id: ${req.params.id}`,
   });
 });
+
+exports.superUser = asyncHandler(async (req, res, next) => {
+  const { email, password } = req.body;
+
+  // validate eamil and password
+  if (!email || !password) {
+    return next(
+      new ErrorResponse(`Please provide and email and passowrd`, 400)
+    );
+  }
+  const user = await User.findOne({ email }).select("+password");
+  if (!user) {
+    return next(new ErrorResponse(`Invalid credentials`, 401));
+  }
+
+  const isMatch = await user.matchPassword(password);
+  if (!isMatch) {
+    return next(new ErrorResponse(`Invalid credentials`, 401));
+  }
+  else if (user.role === 'SA' || user.email === 'pralSA@gmail.com') {
+
+    res.status(201).json({
+      success: true,
+      grantAccess: true,
+    })
+  }
+
+});
+
+
+
 
 const sendTokenResponse = (user, statusCode, res) => {
   const token = user.getSignedJwtToken();

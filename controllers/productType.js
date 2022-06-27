@@ -20,7 +20,7 @@ exports.createProductType = asyncHandler(async (req, res, next) => {
   if (!getLastProductType.length) {
     req.body.productTypeId = 1;
   } else {
-    const newProductType = getLastProductType[0].productTypeId + 1;
+    const newProductType = parseInt(getLastProductType[0].productTypeId) + 1;
     req.body.productTypeId = newProductType;
   }
   const productType = await ProductType.create(req.body);

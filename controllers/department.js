@@ -20,7 +20,7 @@ exports.createDepartment = asyncHandler(async (req, res, next) => {
   if (!getLatestDepartment.length) {
     req.body.DepartmentId = 1;
   } else {
-    const newDepartmentId = getLatestDepartment[0].DepartmentId + 1;
+    const newDepartmentId = parseInt(getLatestDepartment[0].DepartmentId) + 1;
     req.body.DepartmentId = newDepartmentId;
   }
 

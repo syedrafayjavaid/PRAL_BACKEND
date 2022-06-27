@@ -20,7 +20,7 @@ exports.createProduct = asyncHandler(async (req, res, next) => {
   if (!getLastProduct.length) {
     req.body.productId = 1;
   } else {
-    const newProduct = getLastProduct[0].productId + 1;
+    const newProduct = parseInt(getLastProduct[0].productId) + 1;
     req.body.productId = newProduct;
   }
 

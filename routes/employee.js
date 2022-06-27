@@ -7,9 +7,11 @@ const {
   getEmployee,
   updateEmployee,
   deleteEmployee,
+  searchFilters
 } = require("../controllers/employee");
 
 router.route("/").get(getEmployees).post(createEmployee);
+router.route("/search").post(searchFilters);
 router
   .route("/:id")
   .get(getEmployee)

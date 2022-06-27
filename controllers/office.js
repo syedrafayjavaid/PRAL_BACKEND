@@ -20,7 +20,7 @@ exports.createOffice = asyncHandler(async (req, res, next) => {
   if (!getLastOffice.length) {
     req.body.officeId = 1;
   } else {
-    const newOffice = getLastOffice[0].officetId + 1;
+    const newOffice = parseInt(getLastOffice[0].officetId) + 1;
     req.body.officetId = newOffice;
   }
 

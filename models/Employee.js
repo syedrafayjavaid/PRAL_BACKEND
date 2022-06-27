@@ -16,28 +16,28 @@ const EmployeeSchema = new mongoose.Schema({
   office: {
     type: String,
   },
-  designation:{
+  designation: {
     type: String,
   },
-  dateOfJoining:{ 
+  dateOfJoining: {
+    type: Date,
+  },
+  department: {
     type: String
   },
-  department:{ 
+  wing: {
     type: String
   },
-  wing:{ 
-    type: String
-  },
-  pg:{ 
+  pg: {
     type: Number
   },
-  placeOfPosting:{ 
+  placeOfPosting: {
     type: String
   },
-  emailAddress:{ 
+  emailAddress: {
     type: String
   },
-  mobileNumber:{ 
+  mobileNumber: {
     type: String
   },
   remarks: {
@@ -61,7 +61,7 @@ const EmployeeSchema = new mongoose.Schema({
   },
   officeId: { type: mongoose.Schema.Types.ObjectId, ref: "Office" },
   purchasedItems: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
-  reportingManager: [{ type: mongoose.Schema.Types.ObjectId, ref: "Employee" }],
+  reportingManager: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
 });
 
 module.exports = mongoose.model("Employee", EmployeeSchema);

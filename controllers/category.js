@@ -20,7 +20,7 @@ exports.createCategory = asyncHandler(async (req, res, next) => {
   if (!getLatestCategory.length) {
     req.body.categoryId = 1;
   } else {
-    const newCategoryId = getLatestCategory[0].categoryId + 1;
+    const newCategoryId = parseInt(getLatestCategory[0].categoryId) + 1;
     req.body.categoryId = newCategoryId;
   }
 
