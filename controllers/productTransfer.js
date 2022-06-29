@@ -20,41 +20,40 @@ exports.createPoductTransfer = asyncHandler(async (req, res, next) => {
   const body = req.body;
   body.uuid = uuid4();
   const ItemId = body.ItemId;
-  // const dispatchedQuantity = await ProductTransfer.find({ ItemId: ItemId }, { _id: 0, quantity: 1 });
 
-  // //IF RECORDS ARE PREVIOUSLY ADDED CHECK THE QUANTITY
-  // if (dispatchedQuantity) {
-  //   totalQuantity = 0;
-  //   dispatchedQuantity.forEach(value => {
-  //     totalQuantity = totalQuantity + parseInt(value.quantity);
-  //   })
-  // }
 
   // Getting all the unique ids
   const allUniqueIds = await ProductTransfer.aggregate([{ $group: { _id: "$uuid" } }])
-  console.log("All unique uuids are ", allUniqueIds);
+  
 
-  // finding the quantity of lastly added record for each group id and getting sum
-  const totalQuantity = 0;
-  allUniqueIds.map(async (ids) => {
-    const uuid = ids._id
-    const [{ quantity }] = await ProductTransfer.find({ uuid: uuid }).sort({ createdAt: -1 }).limit(1);
-    totalQuantity = totalQuantity + parseInt(quantity);
-  })
+     // finding the quantity of lastly added record for each group id and getting sum
+    var totalQuantity = 0;
+    allUniqueIds.map(async (ids) => {
+    var uuid = ids._id
+    var  quantityFound = await ProductTransfer.find({ItemId:ItemId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
+    if(quantityFound)
+      var  [{quantity}] = quantityFound;
+      totalQuantity = totalQuantity + parseInt(quantity);
+    })
 
-
-
-
+  
+ 
 
   //FIND THE QUANTITY IN STOCK
-  const { quantity } = await PurchaseProduct.findOne({ _id: ItemId }, { _id: 0, quantity: 1 });
-  console.log("print first", totalQuantity);
-  console.log("print Second", quantity);
-  const sumQuantity = totalQuantity + parseInt(req.body.quantity);
-  console.log("The totla sum of the qunatities", sumQuantity);
+  const  stockQuantityfound  = await PurchaseProduct.findOne({ _id: ItemId }, { _id: 0, quantity: 1 });
+    var stockQuantity = 0;
+    var sumQuantity = 0;
+  if(stockQuantityfound){
+     stockQuantity = stockQuantityfound.quantity;
+    console.log("The quantity already assigned to users", totalQuantity);
+    console.log("The Total Quantity that was in stock intially", stockQuantity);
+     sumQuantity = totalQuantity + parseInt(req.body.quantity);
+    console.log("The Sum of the quantity previously assigned and currently ordered", sumQuantity);
+  }
+
 
   // CHECKING IF THE ACTUAL QUANTITY EQUALS OR GREATER THEN SUM OF ALL QUANTITIES IS LESS THAN QUNATITY
-  if (quantity >= sumQuantity) {
+  if (stockQuantity >= sumQuantity) {
 
     const productTransfer = await ProductTransfer.create(body);
     res.status(201).json({
@@ -119,31 +118,41 @@ exports.updateProductTransfer = asyncHandler(async (req, res, next) => {
 
 
   const body = req.body;
-  const ItemId = req.body.ItemId;
-  const UUID = req.body.uuid;
+  const ItemId = body.ItemId;
 
+  
   // Getting all the unique ids
   const allUniqueIds = await ProductTransfer.aggregate([{ $group: { _id: "$uuid" } }])
-  console.log("All unique uuids are ", allUniqueIds);
+  
 
-  // finding the quantity of lastly added record for each group id and getting sum
-  const totalQuantity = 0;
-  allUniqueIds.map(async (ids) => {
-    const uuid = ids._id
-    const [{ quantity }] = await ProductTransfer.find({ uuid: uuid }).sort({ createdAt: -1 }).limit(1);
-    totalQuantity = totalQuantity + parseInt(quantity);
-  })
+     // finding the quantity of lastly added record for each group id and getting sum
+    var totalQuantity = 0;
+    allUniqueIds.map(async (ids) => {
+    var uuid = ids._id
+    var  quantityFound = await ProductTransfer.find({ItemId:ItemId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
+    if(quantityFound)
+      var  [{quantity}] = quantityFound;
+      totalQuantity = totalQuantity + parseInt(quantity);
+    })
 
+  
+ 
 
   //FIND THE QUANTITY IN STOCK
-  const { quantity } = await PurchaseProduct.findOne({ _id: ItemId }, { _id: 0, quantity: 1 });
-  console.log("print first", totalQuantity);
-  console.log("print Second", quantity);
-  const sumQuantity = totalQuantity + parseInt(req.body.quantity);
-  console.log("The totla sum of the qunatities", sumQuantity);
+  const  stockQuantityfound  = await PurchaseProduct.findOne({ _id: ItemId }, { _id: 0, quantity: 1 });
+    var stockQuantity = 0;
+    var sumQuantity = 0;
+  if(stockQuantityfound){
+     stockQuantity = stockQuantityfound.quantity;
+    console.log("The quantity already assigned to users", totalQuantity);
+    console.log("The Total Quantity that was in stock intially", stockQuantity);
+     sumQuantity = totalQuantity + parseInt(req.body.quantity);
+    console.log("The Sum of the quantity previously assigned and currently ordered", sumQuantity);
+  }
+
 
   // CHECKING IF THE ACTUAL QUANTITY EQUALS OR GREATER THEN SUM OF ALL QUANTITIES IS LESS THAN QUNATITY
-  if (quantity >= sumQuantity) {
+  if (stockQuantity >= sumQuantity) {
 
     const productTransfer = await ProductTransfer.create(body);
     res.status(201).json({
@@ -167,11 +176,10 @@ exports.updateProductTransfer = asyncHandler(async (req, res, next) => {
   }
 
 
-
-
-
-
 });
+
+
+
 
 // exports.deletePurchaseProduct = asyncHandler(async (req, res, next) => {
 //   const purchaseProduct = await PurchaseProduct.findByIdAndDelete(

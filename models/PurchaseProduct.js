@@ -10,6 +10,12 @@ PurchaseProductSchema = new mongoose.Schema({
   price: {
     type: Number,
   },
+  srNo: {
+    type: String,
+  },
+  tagNo: {
+    type: String,
+  },
   purchaseOrder: {
     type: String,
   },

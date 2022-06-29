@@ -315,6 +315,7 @@ exports.updatePurchaseProduct = asyncHandler(async (req, res, next) => {
 
 
 
+
 exports.deletePurchaseProduct = asyncHandler(async (req, res, next) => {
   const purchaseProduct = await PurchaseProduct.findByIdAndDelete(
     req.params.id
