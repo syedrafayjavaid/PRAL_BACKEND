@@ -15,9 +15,9 @@ exports.getAllPurchaseProducts = asyncHandler(async (req, res, next) => {
   });
 });
 
-exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
-  // console.log("Purcahase Prod incomming req", req.body);
 
+exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
+  console.log("Purcahase Prod incomming req", req.body);
   const getLastPurchaseProduct = await PurchaseProduct.find({})
     .sort({ _id: -1 })
     .limit(1);
@@ -25,7 +25,7 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
   if (!getLastPurchaseProduct.length) {
     req.body.purchaseProductId = 1;
   } else {
-    const newInStock = parseInt(getLastPurchaseProduct[0].purchaseProductId) + 1;
+    const newInStock = (getLastPurchaseProduct[0].purchaseProductId) + 1;
     req.body.purchaseProductId = newInStock;
   }
 
@@ -161,6 +161,12 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
     data: purchaseProduct,
   });
 });
+
+
+
+
+
+
 
 exports.getPurchaseProduct = asyncHandler(async (req, res, next) => {
   const purchaseProduct = await PurchaseProduct.findById(req.params.id);
