@@ -6,7 +6,7 @@ const {
 } = require("../controllers/productTransfer");
 
 router.route("/").get(getAllProductsTransfer).post(createPoductTransfer);
-router.route("/:id").get(getProductsTransferDetails);
+router.route("/:id").get(modified);
 router.route("/update").put(updateProductTransfer);
 router.route("/transfer").post(ProductTransfer);
 //   .delete(deletePurchaseProduct)

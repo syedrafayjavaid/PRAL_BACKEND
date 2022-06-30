@@ -251,7 +251,9 @@ exports.modified = asyncHandler(async (req, res, next) => {
     var uuid = ids._id
     var quantityFound = await ProductTransfer.find({ ItemId: ItemId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
     console.log("single item has",quantityFound);
-    dataArray.push(quantityFound);
+    const [objectData] = quantityFound;
+    console.log("the data has",objectData)
+    dataArray.push(objectData);
     
   }))
 console.log("The data array has",dataArray);
@@ -263,6 +265,8 @@ console.log("The data array has",dataArray);
   });
 
 });
+
+
 
 
 
@@ -333,6 +337,7 @@ exports.updateProductTransfer = asyncHandler(async (req, res, next) => {
 
 
 });
+
 
 
 
