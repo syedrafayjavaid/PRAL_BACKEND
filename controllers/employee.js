@@ -6,6 +6,8 @@ const Employee = require("../models/Employee");
 const ProductTransfer = require("../models/ProductTransfer");
 const PurchaseProduct = require("../models/PurchaseProduct");
 const Product = require("../models/Product");
+const { default: mongoose } = require("mongoose");
+
 
 
 
@@ -1264,25 +1266,28 @@ exports.searchFilters = asyncHandler(async (req, res, next) => {
 
 exports.getEmployProductsCurrentDetails = asyncHandler(async (req, res, next) => {
 
-  const employId = req.params.id;
+  var EmployId = req.params.id;
   var dataArray = [];
   var data = {};
 
   // Getting all differenr unique ids for the a specific item
-  const allUniqueIds = await ProductTransfer.aggregate([{ $match: { employId: mongoose.Types.ObjectId(employId) } }, { $group: { _id: "$uuid" } }])
+  const allUniqueIds = await ProductTransfer.aggregate([{ $match: { employId: mongoose.Types.ObjectId(EmployId) } }, { $group: { _id: "$uuid" } }])
 
+  // console.log("All UNIQUE ARRAYS HAS",allUniqueIds);
   if (allUniqueIds.length > 0) {
 
     // Getting the last id of the group
     const lastUUID = allUniqueIds[allUniqueIds.length - 1]._id
 
-    console.log("The length of the object", allUniqueIds.length);
+    // console.log("The length of the object", allUniqueIds.length);
 
     // finding the quantity of lastly added record for each group id and getting sum
-    var totalQuantity = 0;
     allUniqueIds.forEach(async ids => {
       var uuid = ids._id
-      var quantityFound = await ProductTransfer.find({ employId: employId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
+      // console.log("The employ id has",EmployId);
+      var quantityFound = await ProductTransfer.find({ employId: EmployId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
+
+      //  console.log("QUANTITY FOUND ARRAYS HAS",quantityFound);
 
       if (quantityFound.length > 0) {
 
@@ -1293,7 +1298,7 @@ exports.getEmployProductsCurrentDetails = asyncHandler(async (req, res, next) =>
         // console.log("The Product id has", productId);
         // console.log("The itemId id has", itemEntryId);
         var employDetails = await Employee.findOne({ _id: employId });
-        // var itemDetails = await PurchaseProduct.findOne({ _id: itemEntryId });
+        var itemDetails = await PurchaseProduct.findOne({ _id: itemEntryId });
         var productDetails = await Product.findOne({ _id: productId });
 
 
@@ -1303,25 +1308,19 @@ exports.getEmployProductsCurrentDetails = asyncHandler(async (req, res, next) =>
           data.employEmail = employDetails.emailAddress;
           data.EmployId = employDetails.employeeId;
         }
-        if (productDetails) {
+        if (productDetails) {;
           data.ProductName = productDetails.name;
           data.ProductBrandName = productDetails.BrandName;
           data.ProductCategoryName = productDetails.categoryName;
           data.ProductModel = productDetails.model;
         }
-        // if (itemDetails) {
-
-
-        // }
-
-        /// calculating the total quantity previously dispatched
-        var [{ quantity }] = quantityFound;
-        totalQuantity = totalQuantity + parseInt(quantity);
-        // console.log("Quantity found has  ", quantityFound);
-        // console.log("Data object has  ", data);
-
-
-
+        if (itemDetails) {
+          data.price = itemDetails.price;
+          data.srNo = itemDetails.srNo;
+          data.tagNo = itemDetails.tagNo;
+          data.QRCodeImage = itemDetails.QRCodeImage;
+      }
+        
         // Merging the Record 
         data.quantity = quantityFound[0].quantity;
         data.EmployMId = quantityFound[0].employId;
@@ -1370,3 +1369,25 @@ exports.getEmployProductsCurrentDetails = asyncHandler(async (req, res, next) =>
 
 });
 
+
+exports.modified = asyncHandler(async (req, res, next) => {
+
+  const employId = req.params.id;
+  const dataArray = [];
+  const allUniqueIds = await ProductTransfer.aggregate([{ $match: { employId: mongoose.Types.ObjectId(employId) } }, { $group: { _id: "$uuid" } }])
+  await Promise.all(  allUniqueIds.map(async (ids) => {
+    var uuid = ids._id
+    var quantityFound = await ProductTransfer.find({ employId: employId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
+    console.log("single item has",quantityFound);
+    dataArray.push(quantityFound);
+    
+  }))
+// console.log("The data array has",dataArray);
+  // sending response       
+  res.status(201).json({
+    success: true,
+    data: dataArray,
+    message: "Employs fetched successfully"
+  });
+
+});

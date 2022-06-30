@@ -165,9 +165,6 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
 
 
 
-
-
-
 exports.getPurchaseProduct = asyncHandler(async (req, res, next) => {
   const purchaseProduct = await PurchaseProduct.findById(req.params.id);
   if (!purchaseProduct) {
