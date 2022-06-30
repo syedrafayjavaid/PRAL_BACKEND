@@ -7,15 +7,15 @@ const {
   getEmployee,
   updateEmployee,
   deleteEmployee,
-  searchFilters
-} = require("../controllers/employee");
+  searchFilters,
+  getEmployProductsCurrentDetails
 
+
+
+} = require("../controllers/employee");
 router.route("/").get(getEmployees).post(createEmployee);
 router.route("/search").post(searchFilters);
-router
-  .route("/:id")
-  .get(getEmployee)
-  .delete(deleteEmployee)
-  .put(updateEmployee);
+router.route("/currentProducts/:id").post(getEmployProductsCurrentDetails);
+router.route("/:id").get(getEmployee).delete(deleteEmployee).put(updateEmployee);
 
 module.exports = router;

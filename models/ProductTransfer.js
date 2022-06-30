@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 ProductTransferSchema = new mongoose.Schema({
-  quantity:{
+  quantity: {
     type: String,
   },
   status: {
@@ -17,13 +17,21 @@ ProductTransferSchema = new mongoose.Schema({
   modifiedBy: {
     type: String,
   },
-  uuid:{
-    type:String,
+  uuid: {
+    type: String,
   },
   modifiedAt: {
     type: Date,
   },
-  
+  transferedTo: {
+    type: String,
+  },
+
+  transferedFrom: {
+    type: String,
+  },
+
+
   employId: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
   productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
   ItemId: { type: mongoose.Schema.Types.ObjectId, ref: "PurchaseProduct" },
