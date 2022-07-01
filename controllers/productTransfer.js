@@ -29,7 +29,7 @@ exports.createPoductTransfer = asyncHandler(async (req, res, next) => {
 
   if(employeeDetails){
     body.employName = employeeDetails.name;
-    body.employID = employeeDetails.employID;
+    body.employID = employeeDetails.employeeId;
   }
 
   // // Getting all the unique ids
@@ -75,6 +75,11 @@ exports.createPoductTransfer = asyncHandler(async (req, res, next) => {
       message: "Product Transfered Successfully"
     });
 
+    // const purchaseProductfound = await PurchaseProduct.findOne({_id:body.ItemId});
+    // const dataa = purchaseProductfound;
+    // dataa.inStock = stockQuantity - sumQuantity;
+
+    // const updatePurchaseProduct = await PurchaseProduct.updateOne({_id:body.ItemId,dataa});
 
   }
   else {
@@ -241,24 +246,63 @@ exports.getProductsTransferDetails = asyncHandler(async (req, res, next) => {
 });
 
 
+exports.getProductsTransferDetailsDemo = asyncHandler(async (req, res, next) => {
+
+  const id = req.params.id;
+  
+  const productTransfer = await ProductTransfer.find({ItemId:id});
+  if (!productTransfer) {
+    return next(
+      new ErrorResponse(
+        ` Product not found with id of ${req.params.id}`,
+        404
+      )
+    );
+  }
+  res.status(200).json({
+    success: true,
+    data: productTransfer,
+  });
+ 
+
+
+});
+
+
 
 exports.modified = asyncHandler(async (req, res, next) => {
 
   const ItemId = req.params.id;
   const dataArray = [];
   const allUniqueIds = await ProductTransfer.aggregate([{ $match: { ItemId: mongoose.Types.ObjectId(ItemId) } }, { $group: { _id: "$uuid" } }])
+  var totalQuantity = 0;
   await Promise.all(  allUniqueIds.map(async (ids) => {
     var uuid = ids._id
     var quantityFound = await ProductTransfer.find({ ItemId: ItemId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
-    console.log("single item has",quantityFound);
+      /// calculating the total quantity previously dispatched
+      var [{ quantity }] = quantityFound;
+      totalQuantity = totalQuantity + parseInt(quantity);
     const [objectData] = quantityFound;
-    console.log("the data has",objectData)
     dataArray.push(objectData);
     
   }))
+
+  //FIND THE QUANTITY IN STOCK
+  const stockQuantityfound = await PurchaseProduct.findOne({ _id: ItemId }, { _id: 0, quantity: 1 });
+  var stockQuantity = 0;
+  var sumQuantity = 0;
+  if (stockQuantityfound) {
+    stockQuantity = stockQuantityfound.quantity;
+    console.log("The quantity already assigned to users", totalQuantity);
+    console.log("The Total Quantity that was in stock intially", stockQuantity);
+  }
+
+  const inStockQauntity = stockQuantity - totalQuantity;
+
 console.log("The data array has",dataArray);
   // sending response       
   res.status(201).json({
+    inStockQauntity:inStockQauntity,
     success: true,
     data: dataArray,
     message: "Products fetched successfully"
@@ -342,128 +386,192 @@ exports.updateProductTransfer = asyncHandler(async (req, res, next) => {
 
 
 
-exports.ProductTransfer = asyncHandler(async (req, res, next) => {
+exports.updateProductTransferDemo = asyncHandler(async (req, res, next) => {
+
+  const _id = req.body._id;
+  const body = req.body;
+  console.log("The incoming body has",req.body);
+
+  // const reposne = await ProductTransfer.findOneAndUpdate(_id,body);
+  const reposne = await ProductTransfer.findByIdAndUpdate(_id, body, {
+    new: true,
+    runValidators: true,
+  });
+  res.status(201).json({
+    success: true,
+    data: reposne,
+    message: "Product Transfered Updated Successfully"
+  });
 
 
-  // const body = req.body;
-  // const ItemId = body.ItemId;
-  // const UUID = body.uuid;
-
-  // // Product Transfer incoming id
-  // const _id = body._id;
-
-  // // Finding the previous Purchase Product record
-  // const PreviousRecord = await ProductTransfer.findById(_id);
-
-  // if(PreviousRecord){
-
-
-  //   if(PreviousRecord.quantity > req.body.quantity ){
-
-
-  //     const quantityDifference = parseInt(PreviousRecord.quantity) - parseInt(req.body.quantity);
-
-
-  //     // creating the new record in the previous employ Product history
-  //     const previousData = {};
-  //     previousData = body;
-  //     previousData.quantity = quantityDifference;
-  //     console.log("The Previous data has",previousData);
-  //     const purchaseProduct = await PurchaseProduct.create(body);
-
-
-  //     //
-  //     const
-
-
-
-    
-
-  //   }
-
-  // // console.log("The previous record has",PreviousRecord);
-
-  // }
-
-
-
-
-
-
-  // data ={};
-  // data.status = "expired"
-  // // Finding the last Product Transfer 
-  // const lastProductTransfer = await ProductTransfer.findByIdAndUpdate(_id,data);
-
-  // // console.log("THE PRODUCT HAS ",lastProductTransfer);
-
-
-
-
-
-
-
-
-
-
-  // // Getting all the unique ids
-  // const allUniqueIds = await ProductTransfer.aggregate([{ $group: { _id: "$uuid" } }])
-
-  // // finding the quantity of lastly added record for each group id and getting sum
-  // var totalQuantity = 0;
-  // allUniqueIds.map(async (ids) => {
-  //   var uuid = ids._id
-  //   var quantityFound = await ProductTransfer.find({ ItemId: ItemId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
-  //   if (quantityFound.length > 0)
-  //     var [{ quantity }] = quantityFound;
-  //   if (UUID !== uuid) {
-  //     totalQuantity = totalQuantity + parseInt(quantity);
-  //   }
-
-  // })
-
-
-
-
-  // //FIND THE QUANTITY IN STOCK
-  // const stockQuantityfound = await PurchaseProduct.findOne({ _id: ItemId }, { _id: 0, quantity: 1 });
-  // var stockQuantity = 0;
-  // var sumQuantity = 0;
-  // if (stockQuantityfound) {
-  //   stockQuantity = stockQuantityfound.quantity;
-  //   console.log("The quantity already assigned to users", totalQuantity);
-  //   console.log("The Total Quantity that was in stock intially", stockQuantity);
-  //   sumQuantity = totalQuantity + parseInt(req.body.quantity);
-  //   console.log("The Sum of the quantity previously assigned and currently ordered", sumQuantity);
-  // }
-
-
-  // // CHECKING IF THE ACTUAL QUANTITY EQUALS OR GREATER THEN SUM OF ALL QUANTITIES IS LESS THAN QUNATITY
-  // if (stockQuantity >= sumQuantity) {
-
-  //   const productTransfer = await ProductTransfer.create(body);
-  //   res.status(201).json({
-  //     success: true,
-  //     data: productTransfer,
-  //     message: "Product Transfered Successfully"
-  //   });
-
-
-  // }
-  // else {
-
-  //   return next(
-  //     new ErrorResponse(
-  //       `The quantity exceeds the item quantity available in store`,
-  //       404
-  //     )
-  //   );
-
-
-  // }
 
 
 });
+
+
+
+
+exports.ProductTransfer = asyncHandler(async (req, res, next) => {
+
+  console.log("yes the request is coming");
+    let _id = req.body._id;
+
+
+    //finding the previous quantity 
+
+    let preQuantity = await ProductTransfer.findById(_id);
+
+    console.log("The incoming object has",req.body);
+    console.log("The found object has",preQuantity);
+    if(preQuantity){
+      console.log("Pass 1");
+      //comparing quantities 
+      if(preQuantity.quantity == req.body.quantity && preQuantity.employId != req.body.employId){
+            
+            console.log("Pass 2");
+            let newTransferData =  {};
+
+            newTransferData = req.body
+            newTransferData.transferedFrom = preQuantity.employName;
+
+            let reposne = await ProductTransfer.findByIdAndUpdate(_id, newTransferData, {
+              new: true,
+              runValidators: true,
+            });
+
+            res.status(201).json({
+              success: true,
+              data: reposne,
+              message: "Product Transfered Updated Successfully"
+            });
+          
+
+      }
+
+     
+
+
+      if(parseInt(preQuantity.quantity) > parseInt(req.body.quantity)  && preQuantity.employId != req.body.employId){
+            
+        console.log("Pass 3");
+            
+        let qd = parseInt(preQuantity.quantity) -  parseInt(req.body.quantity);
+
+        //Updating the previous one
+        let newTransferData =  {};
+        newTransferData = preQuantity;
+        newTransferData.quantity = qd;
+        let reposneUpdate = await ProductTransfer.findByIdAndUpdate(_id, newTransferData, {
+          new: true,
+          runValidators: true,
+        });
+
+
+        //Creating a new one 
+        let newOne = {};
+        newOne = req.body;
+        newOne._id= null;
+        newOne.employName = req.body.transferedTo;
+        newOne.transferedFrom = preQuantity.employName;
+        newOne.transferedTo = "";
+
+        const newRecord = await ProductTransfer.create(newOne);
+
+
+        res.status(201).json({
+          success: true,
+          data: newRecord,
+          message: "Product Transfered Updated Successfully"
+        });
+      
+
+
+
+  }
+
+
+
+
+
+    }
+
+
+
+
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//   // // Getting all the unique ids
+//   // const allUniqueIds = await ProductTransfer.aggregate([{ $group: { _id: "$uuid" } }])
+
+//   // // finding the quantity of lastly added record for each group id and getting sum
+//   // var totalQuantity = 0;
+//   // allUniqueIds.map(async (ids) => {
+//   //   var uuid = ids._id
+//   //   var quantityFound = await ProductTransfer.find({ ItemId: ItemId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
+//   //   if (quantityFound.length > 0)
+//   //     var [{ quantity }] = quantityFound;
+//   //   if (UUID !== uuid) {
+//   //     totalQuantity = totalQuantity + parseInt(quantity);
+//   //   }
+
+//   // })
+
+
+
+
+//   // //FIND THE QUANTITY IN STOCK
+//   // const stockQuantityfound = await PurchaseProduct.findOne({ _id: ItemId }, { _id: 0, quantity: 1 });
+//   // var stockQuantity = 0;
+//   // var sumQuantity = 0;
+//   // if (stockQuantityfound) {
+//   //   stockQuantity = stockQuantityfound.quantity;
+//   //   console.log("The quantity already assigned to users", totalQuantity);
+//   //   console.log("The Total Quantity that was in stock intially", stockQuantity);
+//   //   sumQuantity = totalQuantity + parseInt(req.body.quantity);
+//   //   console.log("The Sum of the quantity previously assigned and currently ordered", sumQuantity);
+//   // }
+
+
+//   // // CHECKING IF THE ACTUAL QUANTITY EQUALS OR GREATER THEN SUM OF ALL QUANTITIES IS LESS THAN QUNATITY
+//   // if (stockQuantity >= sumQuantity) {
+
+//   //   const productTransfer = await ProductTransfer.create(body);
+//   //   res.status(201).json({
+//   //     success: true,
+//   //     data: productTransfer,
+//   //     message: "Product Transfered Successfully"
+//   //   });
+
+
+//   // }
+//   // else {
+
+//   //   return next(
+//   //     new ErrorResponse(
+//   //       `The quantity exceeds the item quantity available in store`,
+//   //       404
+//   //     )
+//   //   );
+
+
+//   // }
+
+
+// });
+
 
 
 
@@ -493,3 +601,125 @@ exports.ProductTransfer = asyncHandler(async (req, res, next) => {
 // });
 
 
+// exports.ProductTransfer = asyncHandler(async (req, res, next) => {
+
+
+//   // const body = req.body;
+//   // const ItemId = body.ItemId;
+//   // const UUID = body.uuid;
+
+//   // // Product Transfer incoming id
+//   // const _id = body._id;
+
+//   // // Finding the previous Purchase Product record
+//   // const PreviousRecord = await ProductTransfer.findById(_id);
+
+//   // if(PreviousRecord){
+
+
+//   //   if(PreviousRecord.quantity > req.body.quantity ){
+
+
+//   //     const quantityDifference = parseInt(PreviousRecord.quantity) - parseInt(req.body.quantity);
+
+
+//   //     // creating the new record in the previous employ Product history
+//   //     const previousData = {};
+//   //     previousData = body;
+//   //     previousData.quantity = quantityDifference;
+//   //     console.log("The Previous data has",previousData);
+//   //     const purchaseProduct = await PurchaseProduct.create(body);
+
+
+//   //     //
+//   //     const
+
+
+
+    
+
+//   //   }
+
+//   // // console.log("The previous record has",PreviousRecord);
+
+//   // }
+
+
+
+
+
+
+//   // data ={};
+//   // data.status = "expired"
+//   // // Finding the last Product Transfer 
+//   // const lastProductTransfer = await ProductTransfer.findByIdAndUpdate(_id,data);
+
+//   // // console.log("THE PRODUCT HAS ",lastProductTransfer);
+
+
+
+
+
+
+
+
+
+
+//   // // Getting all the unique ids
+//   // const allUniqueIds = await ProductTransfer.aggregate([{ $group: { _id: "$uuid" } }])
+
+//   // // finding the quantity of lastly added record for each group id and getting sum
+//   // var totalQuantity = 0;
+//   // allUniqueIds.map(async (ids) => {
+//   //   var uuid = ids._id
+//   //   var quantityFound = await ProductTransfer.find({ ItemId: ItemId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
+//   //   if (quantityFound.length > 0)
+//   //     var [{ quantity }] = quantityFound;
+//   //   if (UUID !== uuid) {
+//   //     totalQuantity = totalQuantity + parseInt(quantity);
+//   //   }
+
+//   // })
+
+
+
+
+//   // //FIND THE QUANTITY IN STOCK
+//   // const stockQuantityfound = await PurchaseProduct.findOne({ _id: ItemId }, { _id: 0, quantity: 1 });
+//   // var stockQuantity = 0;
+//   // var sumQuantity = 0;
+//   // if (stockQuantityfound) {
+//   //   stockQuantity = stockQuantityfound.quantity;
+//   //   console.log("The quantity already assigned to users", totalQuantity);
+//   //   console.log("The Total Quantity that was in stock intially", stockQuantity);
+//   //   sumQuantity = totalQuantity + parseInt(req.body.quantity);
+//   //   console.log("The Sum of the quantity previously assigned and currently ordered", sumQuantity);
+//   // }
+
+
+//   // // CHECKING IF THE ACTUAL QUANTITY EQUALS OR GREATER THEN SUM OF ALL QUANTITIES IS LESS THAN QUNATITY
+//   // if (stockQuantity >= sumQuantity) {
+
+//   //   const productTransfer = await ProductTransfer.create(body);
+//   //   res.status(201).json({
+//   //     success: true,
+//   //     data: productTransfer,
+//   //     message: "Product Transfered Successfully"
+//   //   });
+
+
+//   // }
+//   // else {
+
+//   //   return next(
+//   //     new ErrorResponse(
+//   //       `The quantity exceeds the item quantity available in store`,
+//   //       404
+//   //     )
+//   //   );
+
+
+//   // }
+
+
+// });

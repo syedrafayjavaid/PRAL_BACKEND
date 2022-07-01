@@ -4,7 +4,7 @@ const ErrorResponse = require("../utils/errorResponse");
 const asyncHandler = require("../middleware/async");
 const PurchaseProduct = require("../models/PurchaseProduct");
 const Product = require("../models/Product");
-
+const Employee = require("../models/Employee");
 exports.getAllPurchaseProducts = asyncHandler(async (req, res, next) => {
   const purchaseProduct = await PurchaseProduct.find();
 
@@ -154,6 +154,7 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
   );
   const body = req.body;
   body.quantity = quantity;
+  body.inStore = quantity;
   const purchaseProduct = await PurchaseProduct.create(body);
 
   res.status(201).json({
@@ -297,28 +298,6 @@ exports.updatePurchaseProduct = asyncHandler(async (req, res, next) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 exports.deletePurchaseProduct = asyncHandler(async (req, res, next) => {
   const purchaseProduct = await PurchaseProduct.findByIdAndDelete(
     req.params.id
@@ -338,7 +317,524 @@ exports.deletePurchaseProduct = asyncHandler(async (req, res, next) => {
 });
 
 
-// exports.searchFilters = asyncHandler(async (req, res, next) => {
+exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
+  
+  const id = req.body.productId;
+  const custodian = req.body.custodian;
+  const tagNo = req.body.tagNo;
+  const srNo = req.body.srNo;
+  const venderEmail = req.body.venderEmail;
+
+  try {
+    if (
+      id !== "" &&
+      custodian !== "" &&
+      tagNo !== "" &&
+      srNo !== "" &&
+      venderEmail !== ""
+    ) {
+      console.log("Pass 31");
+      console.log("The Dynamic has", id);
+      let employee = await PurchaseProduct.find({
+        _id: id,
+        custodian: custodian,
+        tagNo: tagNo,
+        srNo: srNo,
+        venderEmail: venderEmail,
+      });
+      if (!employee) {
+        return next(
+          new ErrorResponse(
+            `Employee not found with email ${req.body.productId}`,
+            404
+          )
+        );
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (
+      custodian !== "" &&
+      tagNo !== "" &&
+      srNo !== "" &&
+      venderEmail !== ""
+    ) {
+      console.log("Pass 30");
+      let employee = await PurchaseProduct.find({
+        custodian: custodian,
+        tagNo: tagNo,
+        srNo: srNo,
+        venderEmail: venderEmail,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found`, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (
+      id !== "" &&
+      custodian !== "" &&
+      srNo !== "" &&
+      venderEmail !== ""
+    ) {
+      console.log("Pass 29");
+      console.log("The Dynamic has", id);
+
+      console.log("It is  a valid email");
+      let employee = await PurchaseProduct.find({
+        _id: id,
+        tagNo: tagNo,
+        srNo: srNo,
+        venderEmail: venderEmail,
+      });
+      if (!employee) {
+        return next(
+          new ErrorResponse(
+            `Employee not found with email ${req.body.dynamic}`,
+            404
+          )
+        );
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (
+      id !== "" &&
+      custodian !== "" &&
+      srNo !== "" &&
+      venderEmail !== ""
+    ) {
+      console.log("The Dynamic has", dynamic);
+      console.log("Pass 28");
+      console.log("It is  a valid email");
+      let employee = await PurchaseProduct.find({
+        _id: id,
+        custodian: custodian,
+        srNo: srNo,
+        venderEmail: venderEmail,
+      });
+      if (!employee) {
+        return next(
+          new ErrorResponse(
+            `Employee not found with email ${req.body.productId}`,
+            404
+          )
+        );
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (
+      id !== "" &&
+      custodian !== "" &&
+      tagNo !== "" &&
+      venderEmail !== ""
+    ) {
+      console.log("Pass 27");
+      console.log("The Dynamic has", id);
+
+      console.log("It is  a valid email");
+      let employee = await PurchaseProduct.find({
+        _id: id,
+        custodian: custodian,
+        tagNo: tagNo,
+        venderEmail: venderEmail,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (id !== "" && custodian !== "" && tagNo !== "" && srNo !== "") {
+      let employee = await PurchaseProduct.find({
+        _id: id,
+        custodian: custodian,
+        tagNo: tagNo,
+        srNo: srNo,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (tagNo !== "" && srNo !== "" && venderEmail !== "") {
+      console.log("Pass 25");
+      let employee = await PurchaseProduct.find({
+        tagNo: tagNo,
+        srNo: srNo,
+        venderEmail: venderEmail,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (custodian !== "" && srNo !== "" && venderEmail !== "") {
+      console.log("Pass 24");
+      let employee = await PurchaseProduct.find({
+        custodian: custodian,
+        srNo: srNo,
+        venderEmail: venderEmail,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found`, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (custodian !== "" && tagNo !== "" && venderEmail !== "") {
+      console.log("Pass 23");
+      let employee = await PurchaseProduct.find({
+        custodian: custodian,
+        tagNo: tagNo,
+        venderEmail: venderEmail,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (custodian !== "" && tagNo !== "" && srNo !== "") {
+      console.log("Pass 22");
+      let employee = await PurchaseProduct.find({
+        custodian: custodian,
+        tagNo: tagNo,
+        srNo: srNo,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found`, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (id !== "" && srNo !== "" && venderEmail !== "") {
+      console.log("Pass 21");
+      console.log("The Dynamic has", dynamic);
+
+      console.log("It is  a valid email");
+      let employee = await PurchaseProduct.find({
+        _id: id,
+        srNo: srNo,
+        venderEmail: venderEmail,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (id !== "" && tagNo !== "" && venderEmail !== "") {
+      console.log("Pass 20");
+
+      console.log("It is  a valid email");
+      let employee = await PurchaseProduct.find({
+        _id: id,
+        tagNo: tagNo,
+        venderEmail: venderEmail,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (id !== "" && tagNo !== "" && srNo !== "") {
+      console.log("Pass 19");
+      console.log("The Dynamic has", id);
+
+      console.log("It is  a valid email");
+      let employee = await PurchaseProduct.find({
+        _id: id,
+        tagNo: tagNo,
+        srNo: srNo,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (id !== "" && custodian !== "" && venderEmail !== "") {
+      console.log("Pass 18");
+      console.log("The Dynamic has", dynamic);
+
+      console.log("It is  a valid email");
+      let employee = await PurchaseProduct.find({
+        _id: id,
+        custodian: custodian,
+        venderEmail: venderEmail,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (id !== "" && custodian !== "" && srNo !== "") {
+      console.log("Pass 17");
+      console.log("The Dynamic has", id);
+
+      console.log("It is  a valid email");
+      let employee = await PurchaseProduct.find({
+        _id: id,
+        custodian: custodian,
+        srNo: srNo,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (id !== "" && custodian !== "" && tagNo !== "") {
+      console.log("Pass 16");
+      console.log("It is  a valid email");
+      let employee = await PurchaseProduct.find({
+        _id: id,
+        custodian: custodian,
+        tagNo: tagNo,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (srNo !== "" && venderEmail !== "") {
+      console.log("Pass 15");
+      let employee = await PurchaseProduct.find({
+        srNo: srNo,
+        venderEmail: venderEmail,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    }
+
+    // else if (subCategory !== "" && startPrice !== "") {
+
+    //   console.log("Pass 15");
+    //   let response = await Product.find({ subCategory: subCategory, salePrice: { $gte: startPrice, $lte: endPrice } }).sort({ rating: -1 })
+    //   console.log("response is :", response)
+    //   res.send({ code: 0, data: response })
+
+    // }
+    else if (tagNo !== "" && venderEmail !== "") {
+      console.log("Pass 14");
+      let employee = await PurchaseProduct.find({
+        tagNo: tagNo,
+        venderEmail: venderEmail,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (tagNo !== "" && srNo !== "") {
+      console.log("Pass 13");
+      let employee = await PurchaseProduct.find({
+        tagNo: tagNo,
+        srNo: srNo,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (custodian !== "" && venderEmail !== "") {
+      console.log("Pass 12");
+      let employee = await PurchaseProduct.find({
+        custodian: custodian,
+        venderEmail: venderEmail,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (custodian !== "" && srNo !== "") {
+      console.log("Pass 11");
+      let employee = await PurchaseProduct.find({
+        custodian: custodian,
+        srNo: srNo,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (custodian !== "" && tagNo !== "") {
+      console.log("Pass 10");
+      let employee = await PurchaseProduct.find({
+        custodian: custodian,
+        tagNo: tagNo,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (id !== "" && venderEmail !== "") {
+      console.log("Pass 9");
+      console.log("It is  a valid email");
+      let employee = await PurchaseProduct.find({
+        _id: id,
+        venderEmail: venderEmail,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (id !== "" && srNo !== "") {
+      console.log("Pass 8");
+      console.log("It is  a valid email");
+      let employee = await PurchaseProduct.find({
+        _id: id,
+        srNo: srNo,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (id !== "" && tagNo !== "") {
+      console.log("Pass 7");
+      console.log("It is  a valid email");
+      let employee = await PurchaseProduct.find({
+        _id: id,
+        tagNo: tagNo,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (id !== "" && custodian !== "") {
+      console.log("Pass 6");
+      console.log("It is  a valid email");
+      let employee = await PurchaseProduct.find({
+        _id: id,
+        custodian: custodian,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (venderEmail !== "") {
+      console.log("Pass 5");
+      let employee = await PurchaseProduct.find({
+        venderEmail: venderEmail,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (srNo !== "") {
+      console.log("Pass 4");
+      let employee = await PurchaseProduct.find({ seNo: srNo });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (tagNo !== "") {
+      console.log("Pass 3");
+      let employee = await PurchaseProduct.find({
+        tagNo: tagNo,
+      });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (custodian !== "") {
+      console.log("Pass 2");
+      let employee = await PurchaseProduct.find({ custodian: custodian });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else if (id !== "") {
+      console.log("Pass 1");
+      console.log("It is  a valid email");
+      let employee = await PurchaseProduct.find({ _id: id });
+      if (!employee) {
+        return next(new ErrorResponse(`Employee not found `, 404));
+      }
+      res.status(201).json({
+        success: true,
+        data: employee,
+      });
+    } else {
+      console.log("pass 0");
+      return next(new ErrorResponse(`Employee not found `, 404));
+    }
+  } catch (e) {
+    console.log("Error occured, possible cause: " + e.message);
+    res.send({ code: 1, error: "Error occured, possible cause: " + e.message });
+  }
+});
+
+
+
+
+// exports.searchVendors = asyncHandler(async (req, res, next) => {
+
 //   const purchaseProduct = await PurchaseProduct.findByIdAndDelete(
 //     req.params.id
 //   );
@@ -355,3 +851,33 @@ exports.deletePurchaseProduct = asyncHandler(async (req, res, next) => {
 //     msg: `Purchase Product deleted with id: ${req.params.id}`,
 //   });
 // });
+
+// // exports.vendors = asyncHandler(async (req, res, next) => {
+// //   console.log("Yes I am called");
+// //   // const purchaseProduct = await PurchaseProduct.findById({});
+// //   // const purchaseProduct = await PurchaseProduct.distinct("venderEmail");
+// //   // console.log("all the unique venders are",purchaseProduct);
+// //   // if (!purchaseProduct) {
+// //   //   return next(
+// //   //     new ErrorResponse(
+// //   //       `Purchase Product not found with id of ${req.params.id}`,
+// //   //       404
+// //   //     )
+// //   //   );
+// //   // }
+// //   // else{
+
+ 
+  
+// //   //   // res.status(200).json({
+// //   //   //   success: true,
+// //   //   //   data: purchaseProduct,
+// //   //   // });
+
+// //   // }
+
+
+  
+ 
+// // });
+

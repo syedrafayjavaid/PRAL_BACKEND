@@ -71,6 +71,9 @@ PurchaseProductSchema = new mongoose.Schema({
   modifiedAt: {
     type: Date,
   },
+  inStore: {
+    type: Number,
+  },
   custodian: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
   productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
   officeId: { type: mongoose.Schema.Types.ObjectId, ref: "Office" },

@@ -1267,103 +1267,22 @@ exports.searchFilters = asyncHandler(async (req, res, next) => {
 exports.getEmployProductsCurrentDetails = asyncHandler(async (req, res, next) => {
 
   var EmployId = req.params.id;
-  var dataArray = [];
-  var data = {};
-
-  // Getting all differenr unique ids for the a specific item
-  const allUniqueIds = await ProductTransfer.aggregate([{ $match: { employId: mongoose.Types.ObjectId(EmployId) } }, { $group: { _id: "$uuid" } }])
-
-  // console.log("All UNIQUE ARRAYS HAS",allUniqueIds);
-  if (allUniqueIds.length > 0) {
-
-    // Getting the last id of the group
-    const lastUUID = allUniqueIds[allUniqueIds.length - 1]._id
-
-    // console.log("The length of the object", allUniqueIds.length);
-
-    // finding the quantity of lastly added record for each group id and getting sum
-    allUniqueIds.forEach(async ids => {
-      var uuid = ids._id
-      // console.log("The employ id has",EmployId);
-      var quantityFound = await ProductTransfer.find({ employId: EmployId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
-
-      //  console.log("QUANTITY FOUND ARRAYS HAS",quantityFound);
-
-      if (quantityFound.length > 0) {
-
-        var employId = quantityFound[0].employId;
-        var productId = quantityFound[0].productId;
-        var itemEntryId = quantityFound[0].ItemId;
-        // console.log("The employ id has", employId);
-        // console.log("The Product id has", productId);
-        // console.log("The itemId id has", itemEntryId);
-        var employDetails = await Employee.findOne({ _id: employId });
-        var itemDetails = await PurchaseProduct.findOne({ _id: itemEntryId });
-        var productDetails = await Product.findOne({ _id: productId });
-
-
-
-        if (employDetails) {
-          data.employName = employDetails.name;
-          data.employEmail = employDetails.emailAddress;
-          data.EmployId = employDetails.employeeId;
-        }
-        if (productDetails) {;
-          data.ProductName = productDetails.name;
-          data.ProductBrandName = productDetails.BrandName;
-          data.ProductCategoryName = productDetails.categoryName;
-          data.ProductModel = productDetails.model;
-        }
-        if (itemDetails) {
-          data.price = itemDetails.price;
-          data.srNo = itemDetails.srNo;
-          data.tagNo = itemDetails.tagNo;
-          data.QRCodeImage = itemDetails.QRCodeImage;
-      }
-        
-        // Merging the Record 
-        data.quantity = quantityFound[0].quantity;
-        data.EmployMId = quantityFound[0].employId;
-        data.ProductMId = quantityFound[0].productId;
-        data.ItemMID = quantityFound[0].ItemId;
-        data.createdAt = quantityFound[0].createdAt;
-        data.createdBy = quantityFound[0].createdBy;
-        data.transferedTo = quantityFound[0].transferedTo;
-        data.transferedFrom = quantityFound[0].transferedFrom;
-
-
-        dataArray.push(data);
-
-
-      }
-
-      if (lastUUID === uuid) {
-
-        // sending response       
-        res.status(201).json({
-          success: true,
-          data: dataArray,
-          message: "Employ Detail fetched successfully"
-        });
-
-
-
-      }
-
-
-    })
-
-  }
-  else {
-
+  
+  const productTransfer = await ProductTransfer.find({employId:EmployId});
+  if (!productTransfer) {
     return next(
       new ErrorResponse(
-        `No Data found in the record`,
+        ` Product not found with id of ${req.params.id}`,
         404
       )
     );
-
   }
+  res.status(200).json({
+    success: true,
+    data: productTransfer,
+  });
+ 
+
 
 
 
