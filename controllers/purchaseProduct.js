@@ -5,6 +5,11 @@ const asyncHandler = require("../middleware/async");
 const PurchaseProduct = require("../models/PurchaseProduct");
 const Product = require("../models/Product");
 const Employee = require("../models/Employee");
+const { default: mongoose } = require("mongoose");
+
+
+
+
 exports.getAllPurchaseProducts = asyncHandler(async (req, res, next) => {
   const purchaseProduct = await PurchaseProduct.find();
 
@@ -17,7 +22,7 @@ exports.getAllPurchaseProducts = asyncHandler(async (req, res, next) => {
 
 
 exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
-  console.log("Purcahase Prod incomming req", req.body);
+  // console.log("Purcahase Prod incomming req", req.body);
   const getLastPurchaseProduct = await PurchaseProduct.find({})
     .sort({ _id: -1 })
     .limit(1);
@@ -119,32 +124,64 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
     }
   }
 
+
+  // finding the previous record and calculating the average price and total quantity
+
   const records = await PurchaseProduct.find({ productId: req.body.productId });
-  let sum = 0;
-  let quantity = 0;
-  let averagePrice = 0;
+  let sum =  parseInt(req.body.price);
+  let quantity = parseInt(req.body.quantity)
+  let averagePrice = req.body.price;
+  let productBody;
 
-  if (records) {
+
+  // If the product is previously added 
+  if (records.length > 0) {
     records.map((data) => {
-      sum = sum + data.price;
-      quantity = quantity + data.quantity;
+      sum = sum + parseInt(data.price);
+      // console.log("The incoming price has",data.price);
+      // console.log("The sum of the product has",sum);
+      quantity = quantity + parseInt(data.quantity);
     });
-    averagePrice = sum / records.length;
 
+    
+    console.log("sum has",sum);
+    console.log("The records length has ",records.length+1);
+
+    averagePrice = sum / (records.length+1);
     if (isNaN(averagePrice)) {
-      averagePrice = 0;
+      averagePrice = req.body.price;
     }
 
-    console.log("Avrerage price", averagePrice);
+    console.log("The average price has",averagePrice);
+    console.log("The sum of the quanr has",quantity); 
+
+
+    productBody = {
+      modifiedAt: Date.now(),
+      averagePrice: averagePrice,
+      quantity: quantity,
+    };
+
   }
 
-  const productBody = {
-    modifiedAt: Date.now(),
-    averagePrice: averagePrice,
-    quantity: quantity,
-  };
+  else{
+    // if the there is no record in database
+    productBody = {
+      modifiedAt: Date.now(),
+      averagePrice: req.body.price,
+      quantity: req.body.quantity,
+    };
 
-  const product = await Product.findByIdAndUpdate(
+
+  }
+
+  // Creating the purchased item new record
+  const body = req.body;
+  body.inStore = req.body.quantity;
+  const purchaseProduct = await PurchaseProduct.create(body);
+
+   // updating the average price and quanity in the main product record
+   const product = await Product.findByIdAndUpdate(
     { _id: req.body.productId },
     productBody,
     {
@@ -152,18 +189,12 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
       runValidators: true,
     }
   );
-  const body = req.body;
-  body.quantity = quantity;
-  body.inStore = quantity;
-  const purchaseProduct = await PurchaseProduct.create(body);
 
-  res.status(201).json({
-    success: true,
-    data: purchaseProduct,
-  });
+
+  res.status(201).json({ success: true,data: purchaseProduct,message:"Item regestered successfully"});
+
+
 });
-
-
 
 
 exports.getPurchaseProduct = asyncHandler(async (req, res, next) => {
@@ -274,6 +305,11 @@ exports.updatePurchaseProduct = asyncHandler(async (req, res, next) => {
       req.body.attachment = attachmentArray;
     }
   }
+
+
+
+
+  // Updating the Item record 
   const purchaseProduct = await PurchaseProduct.findByIdAndUpdate(
     req.params.id,
     data,
@@ -289,11 +325,78 @@ exports.updatePurchaseProduct = asyncHandler(async (req, res, next) => {
         404
       )
     );
+  }else{
+
+
+     // finding the previous record and calculating the average price and total quantity
+  const records = await PurchaseProduct.find({ productId: req.body.productId });
+  let sum =  parseInt(0);
+  let quantity = parseInt(0)
+  let averagePrice =  parseInt(0);
+  let productBody;
+
+
+  // If the product is previously added 
+  if (records.length > 0) {
+    records.map((data) => {
+      sum = sum + parseInt(data.price);
+      // console.log("The incoming price has",data.price);
+      // console.log("The sum of the product has",sum);
+      quantity = quantity + parseInt(data.quantity);
+    });
+
+    
+    console.log("sum has",sum);
+    console.log("The records length has ",records.length);
+
+    averagePrice = sum / (records.length);
+    if (isNaN(averagePrice)) {
+      averagePrice = req.body.price;
+    }
+
+    console.log("The average price has",averagePrice);
+    console.log("The sum of the quanr has",quantity); 
+
+
+    productBody = {
+      modifiedAt: Date.now(),
+      averagePrice: averagePrice,
+      quantity: quantity,
+    };
+
   }
-  res.status(200).json({
-    success: true,
-    data: purchaseProduct,
-  });
+
+  else{
+    // if the there is no record in database
+    productBody = {
+      modifiedAt: Date.now(),
+      averagePrice: req.body.price,
+      quantity: req.body.quantity,
+    };
+
+
+  }
+
+   // updating the average price and quanity in the main product record
+   const product = await Product.findByIdAndUpdate(
+    { _id: req.body.productId },
+    productBody,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+
+
+
+    res.status(200).json({
+      success: true,
+      data: purchaseProduct,
+    });
+
+  }
+
 });
 
 
@@ -829,55 +932,4 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
     res.send({ code: 1, error: "Error occured, possible cause: " + e.message });
   }
 });
-
-
-
-
-// exports.searchVendors = asyncHandler(async (req, res, next) => {
-
-//   const purchaseProduct = await PurchaseProduct.findByIdAndDelete(
-//     req.params.id
-//   );
-//   if (!purchaseProduct) {
-//     return next(
-//       new ErrorResponse(
-//         `Purchase Product not found with id of ${req.params.id}`,
-//         404
-//       )
-//     );
-//   }
-//   res.status(201).json({
-//     success: true,
-//     msg: `Purchase Product deleted with id: ${req.params.id}`,
-//   });
-// });
-
-// // exports.vendors = asyncHandler(async (req, res, next) => {
-// //   console.log("Yes I am called");
-// //   // const purchaseProduct = await PurchaseProduct.findById({});
-// //   // const purchaseProduct = await PurchaseProduct.distinct("venderEmail");
-// //   // console.log("all the unique venders are",purchaseProduct);
-// //   // if (!purchaseProduct) {
-// //   //   return next(
-// //   //     new ErrorResponse(
-// //   //       `Purchase Product not found with id of ${req.params.id}`,
-// //   //       404
-// //   //     )
-// //   //   );
-// //   // }
-// //   // else{
-
- 
-  
-// //   //   // res.status(200).json({
-// //   //   //   success: true,
-// //   //   //   data: purchaseProduct,
-// //   //   // });
-
-// //   // }
-
-
-  
- 
-// // });
 
