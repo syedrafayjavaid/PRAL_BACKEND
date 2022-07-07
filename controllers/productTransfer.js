@@ -10,19 +10,14 @@ const { default: mongoose } = require("mongoose");
 
 
 
+
 exports.createPoductTransfer = asyncHandler(async (req, res, next) => {
+
 
   const body = req.body;
   body.uuid = uuid4();
   const ItemId = body.ItemId;
-  const employId = body.employId;
-
-  const employeeDetails = await Employee.findOne({_id:employId});
-
-  if(employeeDetails){
-    body.employName = employeeDetails.name;
-    body.employID = employeeDetails.employeeId;
-  }
+ 
 
   // // Getting all the unique ids
   const allUniqueIds = await ProductTransfer.aggregate([{ $match: { ItemId: mongoose.Types.ObjectId(ItemId) } }, { $group: { _id: "$uuid" } }])
@@ -31,17 +26,14 @@ exports.createPoductTransfer = asyncHandler(async (req, res, next) => {
 
   // finding the quantity of lastly added record for each group id and getting sum
   var totalQuantity = 0;
-  allUniqueIds.map(async (ids) => {
+  await Promise.all(allUniqueIds.map(async (ids) => {
     var uuid = ids._id
     var quantityFound = await ProductTransfer.find({ ItemId: ItemId, uuid: uuid })
     if (quantityFound.length > 0) {
       var [{ quantity }] = quantityFound;
       totalQuantity = totalQuantity + parseInt(quantity);
     }
-  })
-
-
-
+  }))
 
   //FIND THE QUANTITY IN STOCK
   const stockQuantityfound = await PurchaseProduct.findOne({ _id: ItemId }, { _id: 0, quantity: 1 });
@@ -53,11 +45,16 @@ exports.createPoductTransfer = asyncHandler(async (req, res, next) => {
     console.log("The Total Quantity that was in stock intially", stockQuantity);
     sumQuantity = totalQuantity + parseInt(req.body.quantity);
     console.log("The Sum of the quantity previously assigned and currently ordered", sumQuantity);
+    console.log("The Stock Quantity has", stockQuantity);
+
+
   }
+
+  const availableStock = stockQuantity - totalQuantity;
 
 
   // CHECKING IF THE ACTUAL QUANTITY EQUALS OR GREATER THEN SUM OF ALL QUANTITIES IS LESS THAN QUNATITY
-  if (stockQuantity >= sumQuantity) {
+  if (stockQuantity >= sumQuantity ) {
 
     const productTransfer = await ProductTransfer.create(body);
     res.status(201).json({
@@ -70,12 +67,12 @@ exports.createPoductTransfer = asyncHandler(async (req, res, next) => {
   }
   else {
 
-    return next(
-      new ErrorResponse(
-        `The quantity exceeds the item quantity available in store`,
-        404
-      )
-    );
+    res.status(404).json({
+      success: false,
+      stock: availableStock,
+      message: "The quantity exceeds the stock limit"
+    });
+    
 
 
   }
@@ -87,13 +84,49 @@ exports.createPoductTransfer = asyncHandler(async (req, res, next) => {
 
 exports.getProductsTransferDetails = asyncHandler(async (req, res, next) => {
 
+
   const id = req.params.id;
-  
-  const productTransfer = await ProductTransfer.find({ItemId:id});
+
+  const productTransfer = await  ProductTransfer.aggregate([
+    { $match:
+       { ItemId: mongoose.Types.ObjectId(id)
+       } 
+      },
+    {
+      $project:{
+        employId: "$employId",
+        productId: "$productId",
+        ItemId: "$ItemId"
+      }
+    },{
+      $lookup:{
+        from: "products",
+        localField: "productId",
+        foreignField: "_id",
+        as: "products"
+      }
+    },{
+      $lookup:{
+        from: "employees",
+        localField: "employId",
+        foreignField: "_id",
+        as: "employees"
+      }
+    },{
+      $lookup:{
+        from: "purchaseproducts",
+        localField: "ItemId",
+        foreignField: "_id",
+        as: "PurchaseProduct"
+      }
+    }
+    ])
+
+
   if (!productTransfer) {
     return next(
       new ErrorResponse(
-        ` Product not found with id of ${req.params.id}`,
+        ` Product Transfer not found with id of ${req.params.id}`,
         404
       )
     );
@@ -231,6 +264,80 @@ exports.ProductTransfer = asyncHandler(async (req, res, next) => {
 
 
 ///////////// API'S NOT IN USE ////////////////////
+
+exports.createPoductTransfer2 = asyncHandler(async (req, res, next) => {
+
+  const body = req.body;
+  body.uuid = uuid4();
+  const ItemId = body.ItemId;
+  const employId = body.employId;
+
+  const employeeDetails = await Employee.findOne({_id:employId});
+
+  if(employeeDetails){
+    body.employName = employeeDetails.name;
+    body.employID = employeeDetails.employeeId;
+  }
+
+  // // Getting all the unique ids
+  const allUniqueIds = await ProductTransfer.aggregate([{ $match: { ItemId: mongoose.Types.ObjectId(ItemId) } }, { $group: { _id: "$uuid" } }])
+
+
+
+  // finding the quantity of lastly added record for each group id and getting sum
+  var totalQuantity = 0;
+  allUniqueIds.map(async (ids) => {
+    var uuid = ids._id
+    var quantityFound = await ProductTransfer.find({ ItemId: ItemId, uuid: uuid })
+    if (quantityFound.length > 0) {
+      var [{ quantity }] = quantityFound;
+      totalQuantity = totalQuantity + parseInt(quantity);
+    }
+  })
+
+  //FIND THE QUANTITY IN STOCK
+  const stockQuantityfound = await PurchaseProduct.findOne({ _id: ItemId }, { _id: 0, quantity: 1 });
+  var stockQuantity = 0;
+  var sumQuantity = 0;
+  if (stockQuantityfound) {
+    stockQuantity = stockQuantityfound.quantity;
+    console.log("The quantity already assigned to users", totalQuantity);
+    console.log("The Total Quantity that was in stock intially", stockQuantity);
+    sumQuantity = totalQuantity + parseInt(req.body.quantity);
+    console.log("The Sum of the quantity previously assigned and currently ordered", sumQuantity);
+  }
+
+
+  // CHECKING IF THE ACTUAL QUANTITY EQUALS OR GREATER THEN SUM OF ALL QUANTITIES IS LESS THAN QUNATITY
+  if (stockQuantity >= sumQuantity) {
+
+    const productTransfer = await ProductTransfer.create(body);
+    res.status(201).json({
+      success: true,
+      data: productTransfer,
+      message: "Product Transfered Successfully"
+    });
+
+
+  }
+  else {
+
+    return next(
+      new ErrorResponse(
+        `The quantity exceeds the item quantity available in store`,
+        404
+      )
+    );
+
+
+  }
+
+
+
+});
+
+
+
 exports.getProductsTransferDetail2 = asyncHandler(async (req, res, next) => {
 
   const ItemId = req.params.id;
@@ -494,80 +601,6 @@ console.log("The data array has",dataArray);
     data: dataArray,
     message: "Products fetched successfully"
   });
-
-});
-
-exports.createPoductTransfer = asyncHandler(async (req, res, next) => {
-
-  const body = req.body;
-  body.uuid = uuid4();
-  const ItemId = body.ItemId;
-  const employId = body.employId;
-
-  const employeeDetails = await Employee.findOne({_id:employId});
-
-  if(employeeDetails){
-    body.employName = employeeDetails.name;
-    body.employID = employeeDetails.employeeId;
-  }
-
-  // // Getting all the unique ids
-  const allUniqueIds = await ProductTransfer.aggregate([{ $match: { ItemId: mongoose.Types.ObjectId(ItemId) } }, { $group: { _id: "$uuid" } }])
-
-
-
-  // finding the quantity of lastly added record for each group id and getting sum
-  var totalQuantity = 0;
-  allUniqueIds.map(async (ids) => {
-    var uuid = ids._id
-    var quantityFound = await ProductTransfer.find({ ItemId: ItemId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
-    if (quantityFound.length > 0) {
-      var [{ quantity }] = quantityFound;
-      totalQuantity = totalQuantity + parseInt(quantity);
-    }
-  })
-
-
-
-
-  //FIND THE QUANTITY IN STOCK
-  const stockQuantityfound = await PurchaseProduct.findOne({ _id: ItemId }, { _id: 0, quantity: 1 });
-  var stockQuantity = 0;
-  var sumQuantity = 0;
-  if (stockQuantityfound) {
-    stockQuantity = stockQuantityfound.quantity;
-    console.log("The quantity already assigned to users", totalQuantity);
-    console.log("The Total Quantity that was in stock intially", stockQuantity);
-    sumQuantity = totalQuantity + parseInt(req.body.quantity);
-    console.log("The Sum of the quantity previously assigned and currently ordered", sumQuantity);
-  }
-
-
-  // CHECKING IF THE ACTUAL QUANTITY EQUALS OR GREATER THEN SUM OF ALL QUANTITIES IS LESS THAN QUNATITY
-  if (stockQuantity >= sumQuantity) {
-
-    const productTransfer = await ProductTransfer.create(body);
-    res.status(201).json({
-      success: true,
-      data: productTransfer,
-      message: "Product Transfered Successfully"
-    });
-
-
-  }
-  else {
-
-    return next(
-      new ErrorResponse(
-        `The quantity exceeds the item quantity available in store`,
-        404
-      )
-    );
-
-
-  }
-
-
 
 });
 

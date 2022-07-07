@@ -145,18 +145,22 @@ exports.searchFilters = asyncHandler(async (req, res, next) => {
 
   const dynamic = req.body.dynamic;
   const designation = req.body.designation;
-  const reportingManager = req.body.reportingManager;
+  const reportingManager = req.body.location;
   const department = req.body.department;
-  const CurrentDate = req.body.date
+  const sDate = req.body.startDate;
+  const eDate = req.body.endDate;
 
 
 
-  let startDate = new Date(CurrentDate);
+
+
+  let startDate = new Date(sDate);
   startDate.setHours(0, 0, 0, 0);
 
-  let endDate = new Date(CurrentDate);
+  let endDate = new Date(eDate);
   endDate.setDate(endDate.getDate() + 1);
   endDate.setHours(0, 0, 0, 0);
+
 
 
 

@@ -3,9 +3,11 @@ const uuid4 = require("uuid4");
 const ErrorResponse = require("../utils/errorResponse");
 const asyncHandler = require("../middleware/async");
 const PurchaseProduct = require("../models/PurchaseProduct");
+const ProductTransfer = require("../models/ProductTransfer");
 const Product = require("../models/Product");
 const Employee = require("../models/Employee");
 const { default: mongoose } = require("mongoose");
+const { all } = require("../routes/productTransfer");
 
 
 
@@ -177,7 +179,7 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
 
   // Creating the purchased item new record
   const body = req.body;
-  body.inStore = req.body.quantity;
+  // body.inStore = req.body.quantity;
   const purchaseProduct = await PurchaseProduct.create(body);
 
    // updating the average price and quanity in the main product record
@@ -207,10 +209,39 @@ exports.getPurchaseProduct = asyncHandler(async (req, res, next) => {
       )
     );
   }
-  res.status(200).json({
-    success: true,
-    data: purchaseProduct,
-  });
+  else{
+
+ // Getting all the unique ids
+  const allProductsTransfered = await ProductTransfer.aggregate([{ $match: { ItemId: mongoose.Types.ObjectId(req.params.id) } }, { $group: { _id: "$uuid" } }])
+
+  // console.log("All Products transfer has",allProductsTransfered)
+  // finding the quantity of lastly added record for each group id and getting sum
+  var totalQuantity = 0;
+  await Promise.all(allProductsTransfered.map(async (ids) => {
+    var uuid = ids._id
+    var quantityFound = await ProductTransfer.find({ ItemId: req.params.id, uuid: uuid })
+    if (quantityFound.length > 0) {
+      var [{ quantity }] = quantityFound;
+      totalQuantity = totalQuantity + parseInt(quantity);
+    }
+  }))
+
+ 
+  // Calcualting in stock quatity 
+  const stockQuantity = purchaseProduct.quantity;
+  const availableStock = stockQuantity - totalQuantity;
+
+  console.log("The stockQuantity ",stockQuantity);
+  console.log("The availableStock ",availableStock);
+
+    res.status(200).json({
+      success: true,
+      data: purchaseProduct,
+      stock: availableStock
+    });
+
+  }
+ 
 });
 
 exports.updatePurchaseProduct = asyncHandler(async (req, res, next) => {
@@ -306,9 +337,6 @@ exports.updatePurchaseProduct = asyncHandler(async (req, res, next) => {
     }
   }
 
-
-
-
   // Updating the Item record 
   const purchaseProduct = await PurchaseProduct.findByIdAndUpdate(
     req.params.id,
@@ -328,13 +356,95 @@ exports.updatePurchaseProduct = asyncHandler(async (req, res, next) => {
   }else{
 
 
-     // finding the previous record and calculating the average price and total quantity
+ // finding the previous record and calculating the average price and total quantity
   const records = await PurchaseProduct.find({ productId: req.body.productId });
   let sum =  parseInt(0);
   let quantity = parseInt(0)
   let averagePrice =  parseInt(0);
   let productBody;
 
+
+  // If the product is previously added 
+  if (records.length > 0) {
+    records.map((data) => {
+      sum = sum + parseInt(data.price);
+      // console.log("The incoming price has",data.price);
+      // console.log("The sum of the product has",sum);
+      quantity = quantity + parseInt(data.quantity);
+    });
+
+    
+    // console.log("The sum Of the Price has",sum);
+    // console.log("The records length has ",records.length);
+
+    averagePrice = sum / (records.length);
+    if (isNaN(averagePrice)) {
+      averagePrice = req.body.price;
+    }
+
+    // console.log("The average price has",averagePrice);
+    // console.log("The sum of the quanr has",quantity); 
+
+
+    productBody = {
+      modifiedAt: Date.now(),
+      averagePrice: averagePrice,
+      quantity: quantity,
+    };
+
+  }
+
+  else{
+    // if the there is no record in database
+    productBody = {
+      modifiedAt: Date.now(),
+      averagePrice: 0,
+      quantity: 0,
+    };
+
+
+  }
+   // updating the average price and quanity in the main product record
+   const product = await Product.findByIdAndUpdate(
+    { _id: req.body.productId },
+    productBody,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+
+    res.status(200).json({
+      success: true,
+      data: purchaseProduct,
+    });
+
+  }
+
+});
+  
+
+exports.deletePurchaseProduct = asyncHandler(async (req, res, next) => {
+  const purchaseProduct = await PurchaseProduct.findByIdAndDelete(
+    req.params.id
+  );
+  if (!purchaseProduct) {
+    return next(
+      new ErrorResponse(
+        `Purchase Product not found with id of ${req.params.id}`,
+        404
+      )
+    );
+  }else{
+    
+  // finding the previous record and calculating the average price and total quantity
+  const records = await PurchaseProduct.find({ productId: req.body.productId });
+  let sum =  parseInt(0);
+  let quantity = parseInt(0)
+  let averagePrice =  parseInt(0);
+  let productBody;
+  console.log("yes i am here");
 
   // If the product is previously added 
   if (records.length > 0) {
@@ -370,13 +480,12 @@ exports.updatePurchaseProduct = asyncHandler(async (req, res, next) => {
     // if the there is no record in database
     productBody = {
       modifiedAt: Date.now(),
-      averagePrice: req.body.price,
-      quantity: req.body.quantity,
+      averagePrice: 0,
+      quantity: 0,
     };
 
 
   }
-
    // updating the average price and quanity in the main product record
    const product = await Product.findByIdAndUpdate(
     { _id: req.body.productId },
@@ -388,35 +497,15 @@ exports.updatePurchaseProduct = asyncHandler(async (req, res, next) => {
   );
 
 
-
-
-    res.status(200).json({
+    // sending the response 
+    res.status(201).json({
       success: true,
-      data: purchaseProduct,
+      msg: `Purchase Product deleted with id: ${req.params.id}`,
     });
 
+
   }
-
-});
-
-
-
-exports.deletePurchaseProduct = asyncHandler(async (req, res, next) => {
-  const purchaseProduct = await PurchaseProduct.findByIdAndDelete(
-    req.params.id
-  );
-  if (!purchaseProduct) {
-    return next(
-      new ErrorResponse(
-        `Purchase Product not found with id of ${req.params.id}`,
-        404
-      )
-    );
-  }
-  res.status(201).json({
-    success: true,
-    msg: `Purchase Product deleted with id: ${req.params.id}`,
-  });
+ 
 });
 
 

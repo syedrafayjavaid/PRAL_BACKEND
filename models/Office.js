@@ -17,10 +17,10 @@ const OfficeSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please add city name"],
   },
-  latitude: {
+  phone: {
     type: String,
   },
-  longitude: {
+  email: {
     type: String,
   },
   photo: {
