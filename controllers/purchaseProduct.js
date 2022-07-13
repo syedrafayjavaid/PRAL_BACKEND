@@ -325,6 +325,8 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
   const srNo = req.body.srNo;
   const venderEmail = req.body.venderEmail;
 
+
+  console.log("The incoming request has",req.body);
   try {
     if (
       id !== "" &&
@@ -336,7 +338,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
       console.log("Pass 31");
       console.log("The Dynamic has", id);
       let employee = await PurchaseProduct.find({
-        _id: id,
+        productId: id,
         custodian: custodian,
         tagNo: tagNo,
         srNo: srNo,
@@ -385,7 +387,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
 
       console.log("It is  a valid email");
       let employee = await PurchaseProduct.find({
-        _id: id,
+        productId: id,
         tagNo: tagNo,
         srNo: srNo,
         venderEmail: venderEmail,
@@ -412,7 +414,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
       console.log("Pass 28");
       console.log("It is  a valid email");
       let employee = await PurchaseProduct.find({
-        _id: id,
+        productId: id,
         custodian: custodian,
         srNo: srNo,
         venderEmail: venderEmail,
@@ -440,7 +442,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
 
       console.log("It is  a valid email");
       let employee = await PurchaseProduct.find({
-        _id: id,
+        productId: id,
         custodian: custodian,
         tagNo: tagNo,
         venderEmail: venderEmail,
@@ -454,7 +456,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
       });
     } else if (id !== "" && custodian !== "" && tagNo !== "" && srNo !== "") {
       let employee = await PurchaseProduct.find({
-        _id: id,
+        productId: id,
         custodian: custodian,
         tagNo: tagNo,
         srNo: srNo,
@@ -528,7 +530,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
 
       console.log("It is  a valid email");
       let employee = await PurchaseProduct.find({
-        _id: id,
+        productId: id,
         srNo: srNo,
         venderEmail: venderEmail,
       });
@@ -544,7 +546,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
 
       console.log("It is  a valid email");
       let employee = await PurchaseProduct.find({
-        _id: id,
+        productId: id,
         tagNo: tagNo,
         venderEmail: venderEmail,
       });
@@ -561,7 +563,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
 
       console.log("It is  a valid email");
       let employee = await PurchaseProduct.find({
-        _id: id,
+        productId: id,
         tagNo: tagNo,
         srNo: srNo,
       });
@@ -578,7 +580,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
 
       console.log("It is  a valid email");
       let employee = await PurchaseProduct.find({
-        _id: id,
+        productId: id,
         custodian: custodian,
         venderEmail: venderEmail,
       });
@@ -595,7 +597,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
 
       console.log("It is  a valid email");
       let employee = await PurchaseProduct.find({
-        _id: id,
+        productId: id,
         custodian: custodian,
         srNo: srNo,
       });
@@ -610,7 +612,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
       console.log("Pass 16");
       console.log("It is  a valid email");
       let employee = await PurchaseProduct.find({
-        _id: id,
+        productId: id,
         custodian: custodian,
         tagNo: tagNo,
       });
@@ -713,7 +715,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
       console.log("Pass 9");
       console.log("It is  a valid email");
       let employee = await PurchaseProduct.find({
-        _id: id,
+        productId: id,
         venderEmail: venderEmail,
       });
       if (!employee) {
@@ -727,7 +729,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
       console.log("Pass 8");
       console.log("It is  a valid email");
       let employee = await PurchaseProduct.find({
-        _id: id,
+        productId: id,
         srNo: srNo,
       });
       if (!employee) {
@@ -741,7 +743,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
       console.log("Pass 7");
       console.log("It is  a valid email");
       let employee = await PurchaseProduct.find({
-        _id: id,
+        productId: id,
         tagNo: tagNo,
       });
       if (!employee) {
@@ -755,7 +757,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
       console.log("Pass 6");
       console.log("It is  a valid email");
       let employee = await PurchaseProduct.find({
-        _id: id,
+        productId: id,
         custodian: custodian,
       });
       if (!employee) {
@@ -779,7 +781,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
       });
     } else if (srNo !== "") {
       console.log("Pass 4");
-      let employee = await PurchaseProduct.find({ seNo: srNo });
+      let employee = await PurchaseProduct.find({ srNo: srNo });
       if (!employee) {
         return next(new ErrorResponse(`Employee not found `, 404));
       }
@@ -812,7 +814,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
     } else if (id !== "") {
       console.log("Pass 1");
       console.log("It is  a valid email");
-      let employee = await PurchaseProduct.find({ _id: id });
+      let employee = await PurchaseProduct.find({ productId: id });
       if (!employee) {
         return next(new ErrorResponse(`Employee not found `, 404));
       }
@@ -822,7 +824,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
       });
     } else {
       console.log("pass 0");
-      return next(new ErrorResponse(`Employee not found `, 404));
+      return next(new ErrorResponse(`Products not found `, 404));
     }
   } catch (e) {
     console.log("Error occured, possible cause: " + e.message);
