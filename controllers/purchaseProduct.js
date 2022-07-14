@@ -568,7 +568,8 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
     query.purchaseOrder = purchaseOrder;
   }
   if (features.length > 0) {
-    query.features = { $elemMatch: { $in: [features] } }
+    query.features = { $and: features }
+
   }
 
 
