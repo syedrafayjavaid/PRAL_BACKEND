@@ -5,8 +5,6 @@ const asyncHandler = require("../middleware/async");
 const PurchaseProduct = require("../models/PurchaseProduct");
 const Product = require("../models/Product");
 const Employee = require("../models/Employee");
-
-
 exports.getAllPurchaseProducts = asyncHandler(async (req, res, next) => {
   const purchaseProduct = await PurchaseProduct.find();
 
@@ -166,6 +164,8 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
 });
 
 
+
+
 exports.getPurchaseProduct = asyncHandler(async (req, res, next) => {
   const purchaseProduct = await PurchaseProduct.findById(req.params.id);
   if (!purchaseProduct) {
@@ -318,104 +318,7 @@ exports.deletePurchaseProduct = asyncHandler(async (req, res, next) => {
 
 
 exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
-
-  // MAKING VARIABLES NEEDED
-  const id = req.body.productId;
-  const custodian = req.body.custodian;
-  const tagNo = req.body.tagNo;
-  const srNo = req.body.srNo;
-  const purchaseOrder = req.body.purchaseOrder;
-  const venderEmail = req.body.venderEmail;
-  const ownership = req.body.ownership;
-  const status = req.body.status;
-  const startDate = req.body.startDate;
-  const endDate = req.body.endDate;
-  const startQuantity = req.body.startQuantity;
-  const endQuantity = req.body.endQuantity;
-  const startPrice = req.body.startPrice;
-  const endPrice = req.body.endPrice;
-  const features = req.body.features;
-
-
-
-
-  const query = {};
-
-  // MAKING A QUERY
-  if (id !== "") {
-    query.productId = id;
-  }
-  if (custodian !== "") {
-    query.custodian = custodian;
-  }
-  if (tagNo !== "") {
-    query.tagNo = tagNo;
-  }
-  if (srNo !== "") {
-    query.srNo = srNo;
-  }
-  if (venderEmail !== "") {
-    query.venderEmail = venderEmail;
-  }
-  if (ownership !== "") {
-    query.ownership = ownership;
-  }
-  if (status !== "") {
-    query.status = status;
-  }
-  if (startDate !== "" && endDate !== "") {
-    query.dataOfPurchase = { $gte: new Date(startDate), $lte: new Date(endDate) }
-  }
-  if (startQuantity !== "" || endQuantity !== "") {
-    query.quantity = { $gte: startQuantity, $lte: endQuantity }
-  }
-  if (startPrice !== "" || endPrice !== "") {
-    query.price = { $gte: startPrice, $lte: endPrice }
-  }
-  if (purchaseOrder !== "") {
-    query.purchaseOrder = purchaseOrder;
-  }
-  if (features.length > 0) {
-    query.features = { $elemMatch: { $in: [features] } }
-  }
-
-
-
-
-
-
-  console.log("The query has", query);
-
-
-
-
-  // FINDING THE RESULTS AGAINTS QUERY
-  let result = await PurchaseProduct.find(query);
-  if (!result.length) {
-    return next(
-      new ErrorResponse(
-        `No Results found`,
-        404
-      )
-    );
-  }
-  res.status(201).json({
-    success: true,
-    count: result.length,
-    data: result,
-  });
-
-
-
-});
-
-
-
-
-
-// API's NOT IN USE 
-exports.searchPurchaseProductOld = asyncHandler(async (req, res, next) => {
-
+  
   const id = req.body.productId;
   const custodian = req.body.custodian;
   const tagNo = req.body.tagNo;
@@ -423,7 +326,7 @@ exports.searchPurchaseProductOld = asyncHandler(async (req, res, next) => {
   const venderEmail = req.body.venderEmail;
 
 
-  console.log("The incoming request has", req.body);
+  console.log("The incoming request has",req.body);
   try {
     if (
       id !== "" &&
@@ -929,4 +832,54 @@ exports.searchPurchaseProductOld = asyncHandler(async (req, res, next) => {
   }
 });
 
+
+
+
+// exports.searchVendors = asyncHandler(async (req, res, next) => {
+
+//   const purchaseProduct = await PurchaseProduct.findByIdAndDelete(
+//     req.params.id
+//   );
+//   if (!purchaseProduct) {
+//     return next(
+//       new ErrorResponse(
+//         `Purchase Product not found with id of ${req.params.id}`,
+//         404
+//       )
+//     );
+//   }
+//   res.status(201).json({
+//     success: true,
+//     msg: `Purchase Product deleted with id: ${req.params.id}`,
+//   });
+// });
+
+// // exports.vendors = asyncHandler(async (req, res, next) => {
+// //   console.log("Yes I am called");
+// //   // const purchaseProduct = await PurchaseProduct.findById({});
+// //   // const purchaseProduct = await PurchaseProduct.distinct("venderEmail");
+// //   // console.log("all the unique venders are",purchaseProduct);
+// //   // if (!purchaseProduct) {
+// //   //   return next(
+// //   //     new ErrorResponse(
+// //   //       `Purchase Product not found with id of ${req.params.id}`,
+// //   //       404
+// //   //     )
+// //   //   );
+// //   // }
+// //   // else{
+
+ 
+  
+// //   //   // res.status(200).json({
+// //   //   //   success: true,
+// //   //   //   data: purchaseProduct,
+// //   //   // });
+
+// //   // }
+
+
+  
+ 
+// // });
 

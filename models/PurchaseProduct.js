@@ -74,9 +74,6 @@ PurchaseProductSchema = new mongoose.Schema({
   inStore: {
     type: Number,
   },
-  features: {
-    type: Array,
-  },
   custodian: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
   productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
   officeId: { type: mongoose.Schema.Types.ObjectId, ref: "Office" },
