@@ -19,6 +19,8 @@ const department = require("./routes/department");
 const employee = require("./routes/employee");
 const purchaseProduct = require("./routes/purchaseProduct");
 const productTransfer = require("./routes/productTransfer");
+const wings = require("./routes/wing");
+
 const auth = require("./routes/auth");
 
 // load env variables
@@ -52,6 +54,7 @@ app.use("/api/v1/department", department);
 app.use("/api/v1/employee", employee);
 app.use("/api/v1/purchaseProduct", purchaseProduct);
 app.use("/api/v1/productTransfer", productTransfer);
+app.use("/api/v1/wing", wings);
 app.use("/api/v1/auth", auth);
 app.use(errorHandler);
 
