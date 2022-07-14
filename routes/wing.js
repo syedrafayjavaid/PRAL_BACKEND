@@ -6,6 +6,7 @@ const {
 } = require("../controllers/wing");
 
 router.route("/").get(getAllWings).post(createWing);
-router.route("/:id").get(getDepartmentWings).delete(deleteWing).put(updateWing);
+router.route("/:id").delete(deleteWing).put(updateWing);
+router.route("/departmentWings").post(getDepartmentWings)
 
 module.exports = router;

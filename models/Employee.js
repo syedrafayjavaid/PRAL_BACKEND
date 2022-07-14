@@ -25,9 +25,6 @@ const EmployeeSchema = new mongoose.Schema({
   department: {
     type: String
   },
-  wing: {
-    type: String
-  },
   pg: {
     type: Number
   },
@@ -59,6 +56,8 @@ const EmployeeSchema = new mongoose.Schema({
   modifiedAt: {
     type: Date,
   },
+  wing: { type: mongoose.Schema.Types.ObjectId, ref: "Wing" },
+  department: { type: mongoose.Schema.Types.ObjectId, ref: "Department" },
   officeId: { type: mongoose.Schema.Types.ObjectId, ref: "Office" },
   purchasedItems: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
   reportingManager: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },

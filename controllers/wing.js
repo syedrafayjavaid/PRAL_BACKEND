@@ -16,7 +16,7 @@ exports.createWing = asyncHandler(async (req, res, next) => {
   const getLatestWings = await Wing.find({}).sort({ _id: -1 }).limit(1);
 
   if (!getLatestWings.length) {
-    req.body.DepartmentId = 1;
+    req.body.wingId = 1;
   } else {
     const newWingId = parseInt(getLatestWings[0].wingId) + 1;
     req.body.wingId = newWingId;
@@ -34,6 +34,7 @@ exports.getDepartmentWings = asyncHandler(async (req, res, next) => {
 
   const department = req.body.departmentId;
 
+  console.log("This is the id coming", department);
   const wing = await Wing.find({ department });
   if (!wing) {
     return next(

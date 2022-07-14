@@ -13,7 +13,31 @@ const { all } = require("../routes/productTransfer");
 
 
 exports.getAllPurchaseProducts = asyncHandler(async (req, res, next) => {
-  const purchaseProduct = await PurchaseProduct.find();
+
+
+  // NEW API
+  const purchaseProduct = await PurchaseProduct.aggregate([
+
+    {
+      $lookup: {
+        from: "products",
+        localField: "productId",
+        foreignField: "_id",
+        as: "product"
+      }
+    }, {
+      $lookup: {
+        from: "offices",
+        localField: "officeId",
+        foreignField: "_id",
+        as: "office"
+      }
+    }
+  ])
+
+
+  // OLD
+  // const purchaseProduct = await PurchaseProduct.find();
 
   res.status(200).json({
     success: true,
@@ -200,7 +224,35 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
 
 
 exports.getPurchaseProduct = asyncHandler(async (req, res, next) => {
-  const purchaseProduct = await PurchaseProduct.findById(req.params.id);
+
+  // NEW API
+  const purchaseProduct = await PurchaseProduct.aggregate([
+
+    {
+      $match: {
+        _id: mongoose.Types.ObjectId(req.params.id)
+      }
+    },
+    {
+      $lookup: {
+        from: "products",
+        localField: "productId",
+        foreignField: "_id",
+        as: "product"
+      }
+    }, {
+      $lookup: {
+        from: "offices",
+        localField: "officeId",
+        foreignField: "_id",
+        as: "office"
+      }
+    }
+  ])
+
+  // OLD
+  // const purchaseProduct = await PurchaseProduct.findById(req.params.id);
+
   if (!purchaseProduct) {
     return next(
       new ErrorResponse(
@@ -511,6 +563,7 @@ exports.deletePurchaseProduct = asyncHandler(async (req, res, next) => {
 
 exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
 
+
   // MAKING VARIABLES NEEDED
   const id = req.body.productId;
   const custodian = req.body.custodian;
@@ -520,8 +573,8 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
   const venderEmail = req.body.venderEmail;
   const ownership = req.body.ownership;
   const status = req.body.status;
-  const startDate = req.body.startDate;
-  const endDate = req.body.endDate;
+  const sDate = req.body.startDate;
+  const eDate = req.body.endDate;
   const startQuantity = req.body.startQuantity;
   const endQuantity = req.body.endQuantity;
   const startPrice = req.body.startPrice;
@@ -529,6 +582,12 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
   const features = req.body.features;
 
 
+  let startDate = new Date(sDate);
+  startDate.setHours(0, 0, 0, 0);
+
+  let endDate = new Date(eDate);
+  endDate.setDate(endDate.getDate() + 1);
+  endDate.setHours(0, 0, 0, 0);
 
 
   const query = {};
@@ -555,7 +614,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
   if (status !== "") {
     query.status = status;
   }
-  if (startDate !== "" && endDate !== "") {
+  if (sDate !== "" && eDate !== "") {
     query.dataOfPurchase = { $gte: new Date(startDate), $lte: new Date(endDate) }
   }
   if (startQuantity !== "" || endQuantity !== "") {
@@ -568,22 +627,39 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
     query.purchaseOrder = purchaseOrder;
   }
   if (features.length > 0) {
-    query.features = { $and: features }
-
+    query.features = { $all: features }
   }
-
-
-
-
 
 
   console.log("The query has", query);
 
-
-
-
   // FINDING THE RESULTS AGAINTS QUERY
-  let result = await PurchaseProduct.find(query);
+  // NEW API
+  const result = await PurchaseProduct.aggregate([
+
+    {
+      $match: query
+
+    },
+    {
+      $lookup: {
+        from: "products",
+        localField: "productId",
+        foreignField: "_id",
+        as: "product"
+      }
+    }, {
+      $lookup: {
+        from: "offices",
+        localField: "officeId",
+        foreignField: "_id",
+        as: "office"
+      }
+    }
+  ])
+
+  //OLD
+  // let result = await PurchaseProduct.find(query);
   if (!result.length) {
     return next(
       new ErrorResponse(
@@ -604,6 +680,8 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
 
 
 
+
+// API'S NOT IN USE
 
 exports.searchPurchaseProductOld = asyncHandler(async (req, res, next) => {
 

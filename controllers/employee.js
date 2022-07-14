@@ -141,6 +141,124 @@ exports.deleteEmployee = asyncHandler(async (req, res, next) => {
 
 exports.searchFilters = asyncHandler(async (req, res, next) => {
 
+
+  // MAKING VARIABLES NEEDED
+
+  const employeeId = req.body.employeeId;
+  const designation = req.body.designation;
+  const location = req.body.location;
+  const department = req.body.department;
+  const sDate = req.body.startDate;
+  const eDate = req.body.endDate;
+
+
+  let startDate = new Date(sDate);
+  startDate.setHours(0, 0, 0, 0);
+
+  let endDate = new Date(eDate);
+  endDate.setDate(endDate.getDate() + 1);
+  endDate.setHours(0, 0, 0, 0);
+
+
+
+  const query = {};
+
+  // MAKING A QUERY
+  if (employeeId !== "") {
+    query.employeeId = employeeId;
+  }
+  if (designation !== "") {
+    query.designation = designation;
+  }
+  if (location !== "") {
+    query.officeId = location;
+  }
+  if (department !== "") {
+    query.department = department;
+  }
+  if (sDate !== "" && eDate) {
+    query.dateOfJoining = { $gte: new Date(startDate), $lte: new Date(endDate) };
+  }
+
+
+
+  console.log("The query has", query);
+
+  // FINDING THE RESULTS AGAINTS QUERY
+  let result = await Employee.find(query);
+  if (!result.length) {
+    return next(
+      new ErrorResponse(
+        `No Results found`,
+        404
+      )
+    );
+  }
+  res.status(201).json({
+    success: true,
+    count: result.length,
+    data: result,
+  });
+
+
+
+});
+
+
+
+exports.getEmployProductsCurrentDetails = asyncHandler(async (req, res, next) => {
+
+  var EmployId = req.params.id;
+
+  const productTransfer = await ProductTransfer.find({ employId: EmployId });
+  if (!productTransfer) {
+    return next(
+      new ErrorResponse(
+        ` Product not found with id of ${req.params.id}`,
+        404
+      )
+    );
+  }
+  res.status(200).json({
+    success: true,
+    data: productTransfer,
+  });
+
+
+
+
+
+});
+
+
+exports.modified = asyncHandler(async (req, res, next) => {
+
+  const employId = req.params.id;
+  const dataArray = [];
+  const allUniqueIds = await ProductTransfer.aggregate([{ $match: { employId: mongoose.Types.ObjectId(employId) } }, { $group: { _id: "$uuid" } }])
+  await Promise.all(allUniqueIds.map(async (ids) => {
+    var uuid = ids._id
+    var quantityFound = await ProductTransfer.find({ employId: employId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
+    console.log("single item has", quantityFound);
+    dataArray.push(quantityFound);
+
+  }))
+  // console.log("The data array has",dataArray);
+  // sending response       
+  res.status(201).json({
+    success: true,
+    data: dataArray,
+    message: "Employs fetched successfully"
+  });
+
+});
+
+
+
+// API'S NOT IN USE
+
+exports.searchFiltersOld = asyncHandler(async (req, res, next) => {
+
   console.log("Yes I am getting called");
 
   const dynamic = req.body.dynamic;
@@ -1264,53 +1382,5 @@ exports.searchFilters = asyncHandler(async (req, res, next) => {
   }
 
 
-
-});
-
-
-exports.getEmployProductsCurrentDetails = asyncHandler(async (req, res, next) => {
-
-  var EmployId = req.params.id;
-  
-  const productTransfer = await ProductTransfer.find({employId:EmployId});
-  if (!productTransfer) {
-    return next(
-      new ErrorResponse(
-        ` Product not found with id of ${req.params.id}`,
-        404
-      )
-    );
-  }
-  res.status(200).json({
-    success: true,
-    data: productTransfer,
-  });
- 
-
-
-
-
-});
-
-
-exports.modified = asyncHandler(async (req, res, next) => {
-
-  const employId = req.params.id;
-  const dataArray = [];
-  const allUniqueIds = await ProductTransfer.aggregate([{ $match: { employId: mongoose.Types.ObjectId(employId) } }, { $group: { _id: "$uuid" } }])
-  await Promise.all(  allUniqueIds.map(async (ids) => {
-    var uuid = ids._id
-    var quantityFound = await ProductTransfer.find({ employId: employId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
-    console.log("single item has",quantityFound);
-    dataArray.push(quantityFound);
-    
-  }))
-// console.log("The data array has",dataArray);
-  // sending response       
-  res.status(201).json({
-    success: true,
-    data: dataArray,
-    message: "Employs fetched successfully"
-  });
 
 });
