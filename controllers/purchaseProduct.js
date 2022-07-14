@@ -130,7 +130,7 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
   // finding the previous record and calculating the average price and total quantity
 
   const records = await PurchaseProduct.find({ productId: req.body.productId });
-  let sum =  parseInt(req.body.price);
+  let sum = parseInt(req.body.price);
   let quantity = parseInt(req.body.quantity)
   let averagePrice = req.body.price;
   let productBody;
@@ -145,17 +145,17 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
       quantity = quantity + parseInt(data.quantity);
     });
 
-    
-    console.log("sum has",sum);
-    console.log("The records length has ",records.length+1);
 
-    averagePrice = sum / (records.length+1);
+    console.log("sum has", sum);
+    console.log("The records length has ", records.length + 1);
+
+    averagePrice = sum / (records.length + 1);
     if (isNaN(averagePrice)) {
       averagePrice = req.body.price;
     }
 
-    console.log("The average price has",averagePrice);
-    console.log("The sum of the quanr has",quantity); 
+    console.log("The average price has", averagePrice);
+    console.log("The sum of the quanr has", quantity);
 
 
     productBody = {
@@ -166,7 +166,7 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
 
   }
 
-  else{
+  else {
     // if the there is no record in database
     productBody = {
       modifiedAt: Date.now(),
@@ -182,8 +182,8 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
   // body.inStore = req.body.quantity;
   const purchaseProduct = await PurchaseProduct.create(body);
 
-   // updating the average price and quanity in the main product record
-   const product = await Product.findByIdAndUpdate(
+  // updating the average price and quanity in the main product record
+  const product = await Product.findByIdAndUpdate(
     { _id: req.body.productId },
     productBody,
     {
@@ -193,7 +193,7 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
   );
 
 
-  res.status(201).json({ success: true,data: purchaseProduct,message:"Item regestered successfully"});
+  res.status(201).json({ success: true, data: purchaseProduct, message: "Item regestered successfully" });
 
 
 });
@@ -209,30 +209,30 @@ exports.getPurchaseProduct = asyncHandler(async (req, res, next) => {
       )
     );
   }
-  else{
+  else {
 
- // Getting all the unique ids
-  const allProductsTransfered = await ProductTransfer.aggregate([{ $match: { ItemId: mongoose.Types.ObjectId(req.params.id) } }, { $group: { _id: "$uuid" } }])
+    // Getting all the unique ids
+    const allProductsTransfered = await ProductTransfer.aggregate([{ $match: { ItemId: mongoose.Types.ObjectId(req.params.id) } }, { $group: { _id: "$uuid" } }])
 
-  // console.log("All Products transfer has",allProductsTransfered)
-  // finding the quantity of lastly added record for each group id and getting sum
-  var totalQuantity = 0;
-  await Promise.all(allProductsTransfered.map(async (ids) => {
-    var uuid = ids._id
-    var quantityFound = await ProductTransfer.find({ ItemId: req.params.id, uuid: uuid })
-    if (quantityFound.length > 0) {
-      var [{ quantity }] = quantityFound;
-      totalQuantity = totalQuantity + parseInt(quantity);
-    }
-  }))
+    // console.log("All Products transfer has",allProductsTransfered)
+    // finding the quantity of lastly added record for each group id and getting sum
+    var totalQuantity = 0;
+    await Promise.all(allProductsTransfered.map(async (ids) => {
+      var uuid = ids._id
+      var quantityFound = await ProductTransfer.find({ ItemId: req.params.id, uuid: uuid })
+      if (quantityFound.length > 0) {
+        var [{ quantity }] = quantityFound;
+        totalQuantity = totalQuantity + parseInt(quantity);
+      }
+    }))
 
- 
-  // Calcualting in stock quatity 
-  const stockQuantity = purchaseProduct.quantity;
-  const availableStock = stockQuantity - totalQuantity;
 
-  console.log("The stockQuantity ",stockQuantity);
-  console.log("The availableStock ",availableStock);
+    // Calcualting in stock quatity 
+    const stockQuantity = purchaseProduct.quantity;
+    const availableStock = stockQuantity - totalQuantity;
+
+    console.log("The stockQuantity ", stockQuantity);
+    console.log("The availableStock ", availableStock);
 
     res.status(200).json({
       success: true,
@@ -241,7 +241,7 @@ exports.getPurchaseProduct = asyncHandler(async (req, res, next) => {
     });
 
   }
- 
+
 });
 
 exports.updatePurchaseProduct = asyncHandler(async (req, res, next) => {
@@ -353,66 +353,66 @@ exports.updatePurchaseProduct = asyncHandler(async (req, res, next) => {
         404
       )
     );
-  }else{
+  } else {
 
 
- // finding the previous record and calculating the average price and total quantity
-  const records = await PurchaseProduct.find({ productId: req.body.productId });
-  let sum =  parseInt(0);
-  let quantity = parseInt(0)
-  let averagePrice =  parseInt(0);
-  let productBody;
+    // finding the previous record and calculating the average price and total quantity
+    const records = await PurchaseProduct.find({ productId: req.body.productId });
+    let sum = parseInt(0);
+    let quantity = parseInt(0)
+    let averagePrice = parseInt(0);
+    let productBody;
 
 
-  // If the product is previously added 
-  if (records.length > 0) {
-    records.map((data) => {
-      sum = sum + parseInt(data.price);
-      // console.log("The incoming price has",data.price);
-      // console.log("The sum of the product has",sum);
-      quantity = quantity + parseInt(data.quantity);
-    });
+    // If the product is previously added 
+    if (records.length > 0) {
+      records.map((data) => {
+        sum = sum + parseInt(data.price);
+        // console.log("The incoming price has",data.price);
+        // console.log("The sum of the product has",sum);
+        quantity = quantity + parseInt(data.quantity);
+      });
 
-    
-    // console.log("The sum Of the Price has",sum);
-    // console.log("The records length has ",records.length);
 
-    averagePrice = sum / (records.length);
-    if (isNaN(averagePrice)) {
-      averagePrice = req.body.price;
+      // console.log("The sum Of the Price has",sum);
+      // console.log("The records length has ",records.length);
+
+      averagePrice = sum / (records.length);
+      if (isNaN(averagePrice)) {
+        averagePrice = req.body.price;
+      }
+
+      // console.log("The average price has",averagePrice);
+      // console.log("The sum of the quanr has",quantity); 
+
+
+      productBody = {
+        modifiedAt: Date.now(),
+        averagePrice: averagePrice,
+        quantity: quantity,
+      };
+
     }
 
-    // console.log("The average price has",averagePrice);
-    // console.log("The sum of the quanr has",quantity); 
+    else {
+      // if the there is no record in database
+      productBody = {
+        modifiedAt: Date.now(),
+        averagePrice: 0,
+        quantity: 0,
+      };
 
 
-    productBody = {
-      modifiedAt: Date.now(),
-      averagePrice: averagePrice,
-      quantity: quantity,
-    };
-
-  }
-
-  else{
-    // if the there is no record in database
-    productBody = {
-      modifiedAt: Date.now(),
-      averagePrice: 0,
-      quantity: 0,
-    };
-
-
-  }
-   // updating the average price and quanity in the main product record
-   const product = await Product.findByIdAndUpdate(
-    { _id: req.body.productId },
-    productBody,
-    {
-      new: true,
-      runValidators: true,
     }
-  );
+    // updating the average price and quanity in the main product record
+    const product = await Product.findByIdAndUpdate(
+      { _id: req.body.productId },
+      productBody,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
 
     res.status(200).json({
@@ -423,7 +423,7 @@ exports.updatePurchaseProduct = asyncHandler(async (req, res, next) => {
   }
 
 });
-  
+
 
 exports.deletePurchaseProduct = asyncHandler(async (req, res, next) => {
   const purchaseProduct = await PurchaseProduct.findByIdAndDelete(
@@ -436,65 +436,65 @@ exports.deletePurchaseProduct = asyncHandler(async (req, res, next) => {
         404
       )
     );
-  }else{
-    
-  // finding the previous record and calculating the average price and total quantity
-  const records = await PurchaseProduct.find({ productId: req.body.productId });
-  let sum =  parseInt(0);
-  let quantity = parseInt(0)
-  let averagePrice =  parseInt(0);
-  let productBody;
-  console.log("yes i am here");
+  } else {
 
-  // If the product is previously added 
-  if (records.length > 0) {
-    records.map((data) => {
-      sum = sum + parseInt(data.price);
-      // console.log("The incoming price has",data.price);
-      // console.log("The sum of the product has",sum);
-      quantity = quantity + parseInt(data.quantity);
-    });
+    // finding the previous record and calculating the average price and total quantity
+    const records = await PurchaseProduct.find({ productId: req.body.productId });
+    let sum = parseInt(0);
+    let quantity = parseInt(0)
+    let averagePrice = parseInt(0);
+    let productBody;
+    console.log("yes i am here");
 
-    
-    console.log("sum has",sum);
-    console.log("The records length has ",records.length);
+    // If the product is previously added 
+    if (records.length > 0) {
+      records.map((data) => {
+        sum = sum + parseInt(data.price);
+        // console.log("The incoming price has",data.price);
+        // console.log("The sum of the product has",sum);
+        quantity = quantity + parseInt(data.quantity);
+      });
 
-    averagePrice = sum / (records.length);
-    if (isNaN(averagePrice)) {
-      averagePrice = req.body.price;
+
+      console.log("sum has", sum);
+      console.log("The records length has ", records.length);
+
+      averagePrice = sum / (records.length);
+      if (isNaN(averagePrice)) {
+        averagePrice = req.body.price;
+      }
+
+      console.log("The average price has", averagePrice);
+      console.log("The sum of the quanr has", quantity);
+
+
+      productBody = {
+        modifiedAt: Date.now(),
+        averagePrice: averagePrice,
+        quantity: quantity,
+      };
+
     }
 
-    console.log("The average price has",averagePrice);
-    console.log("The sum of the quanr has",quantity); 
+    else {
+      // if the there is no record in database
+      productBody = {
+        modifiedAt: Date.now(),
+        averagePrice: 0,
+        quantity: 0,
+      };
 
 
-    productBody = {
-      modifiedAt: Date.now(),
-      averagePrice: averagePrice,
-      quantity: quantity,
-    };
-
-  }
-
-  else{
-    // if the there is no record in database
-    productBody = {
-      modifiedAt: Date.now(),
-      averagePrice: 0,
-      quantity: 0,
-    };
-
-
-  }
-   // updating the average price and quanity in the main product record
-   const product = await Product.findByIdAndUpdate(
-    { _id: req.body.productId },
-    productBody,
-    {
-      new: true,
-      runValidators: true,
     }
-  );
+    // updating the average price and quanity in the main product record
+    const product = await Product.findByIdAndUpdate(
+      { _id: req.body.productId },
+      productBody,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
 
     // sending the response 
@@ -505,12 +505,107 @@ exports.deletePurchaseProduct = asyncHandler(async (req, res, next) => {
 
 
   }
- 
+
 });
 
 
 exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
-  
+
+  // MAKING VARIABLES NEEDED
+  const id = req.body.productId;
+  const custodian = req.body.custodian;
+  const tagNo = req.body.tagNo;
+  const srNo = req.body.srNo;
+  const purchaseOrder = req.body.purchaseOrder;
+  const venderEmail = req.body.venderEmail;
+  const ownership = req.body.ownership;
+  const status = req.body.status;
+  const startDate = req.body.startDate;
+  const endDate = req.body.endDate;
+  const startQuantity = req.body.startQuantity;
+  const endQuantity = req.body.endQuantity;
+  const startPrice = req.body.startPrice;
+  const endPrice = req.body.endPrice;
+  const features = req.body.features;
+
+
+
+
+  const query = {};
+
+  // MAKING A QUERY
+  if (id !== "") {
+    query.productId = id;
+  }
+  if (custodian !== "") {
+    query.custodian = custodian;
+  }
+  if (tagNo !== "") {
+    query.tagNo = tagNo;
+  }
+  if (srNo !== "") {
+    query.srNo = srNo;
+  }
+  if (venderEmail !== "") {
+    query.venderEmail = venderEmail;
+  }
+  if (ownership !== "") {
+    query.ownership = ownership;
+  }
+  if (status !== "") {
+    query.status = status;
+  }
+  if (startDate !== "" && endDate !== "") {
+    query.dataOfPurchase = { $gte: new Date(startDate), $lte: new Date(endDate) }
+  }
+  if (startQuantity !== "" || endQuantity !== "") {
+    query.quantity = { $gte: startQuantity, $lte: endQuantity }
+  }
+  if (startPrice !== "" || endPrice !== "") {
+    query.price = { $gte: startPrice, $lte: endPrice }
+  }
+  if (purchaseOrder !== "") {
+    query.purchaseOrder = purchaseOrder;
+  }
+  if (features.length > 0) {
+    query.features = { $elemMatch: { $in: [features] } }
+  }
+
+
+
+
+
+
+  console.log("The query has", query);
+
+
+
+
+  // FINDING THE RESULTS AGAINTS QUERY
+  let result = await PurchaseProduct.find(query);
+  if (!result.length) {
+    return next(
+      new ErrorResponse(
+        `No Results found`,
+        404
+      )
+    );
+  }
+  res.status(201).json({
+    success: true,
+    count: result.length,
+    data: result,
+  });
+
+
+
+});
+
+
+
+
+exports.searchPurchaseProductOld = asyncHandler(async (req, res, next) => {
+
   const id = req.body.productId;
   const custodian = req.body.custodian;
   const tagNo = req.body.tagNo;

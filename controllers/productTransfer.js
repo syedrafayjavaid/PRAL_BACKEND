@@ -17,7 +17,7 @@ exports.createPoductTransfer = asyncHandler(async (req, res, next) => {
   const body = req.body;
   body.uuid = uuid4();
   const ItemId = body.ItemId;
- 
+
 
   // // Getting all the unique ids
   const allUniqueIds = await ProductTransfer.aggregate([{ $match: { ItemId: mongoose.Types.ObjectId(ItemId) } }, { $group: { _id: "$uuid" } }])
@@ -54,7 +54,7 @@ exports.createPoductTransfer = asyncHandler(async (req, res, next) => {
 
 
   // CHECKING IF THE ACTUAL QUANTITY EQUALS OR GREATER THEN SUM OF ALL QUANTITIES IS LESS THAN QUNATITY
-  if (stockQuantity >= sumQuantity ) {
+  if (stockQuantity >= sumQuantity) {
 
     const productTransfer = await ProductTransfer.create(body);
     res.status(201).json({
@@ -72,7 +72,7 @@ exports.createPoductTransfer = asyncHandler(async (req, res, next) => {
       stock: availableStock,
       message: "The quantity exceeds the stock limit"
     });
-    
+
 
 
   }
@@ -87,40 +87,42 @@ exports.getProductsTransferDetails = asyncHandler(async (req, res, next) => {
 
   const id = req.params.id;
 
-  const productTransfer = await  ProductTransfer.aggregate([
-    { $match:
-       { ItemId: mongoose.Types.ObjectId(id)
-       } 
-      },
+  const productTransfer = await ProductTransfer.aggregate([
     {
-      $project:{
+      $match:
+      {
+        ItemId: mongoose.Types.ObjectId(id)
+      }
+    },
+    {
+      $project: {
         employId: "$employId",
         productId: "$productId",
         ItemId: "$ItemId"
       }
-    },{
-      $lookup:{
+    }, {
+      $lookup: {
         from: "products",
         localField: "productId",
         foreignField: "_id",
         as: "products"
       }
-    },{
-      $lookup:{
+    }, {
+      $lookup: {
         from: "employees",
         localField: "employId",
         foreignField: "_id",
         as: "employees"
       }
-    },{
-      $lookup:{
+    }, {
+      $lookup: {
         from: "purchaseproducts",
         localField: "ItemId",
         foreignField: "_id",
         as: "PurchaseProduct"
       }
     }
-    ])
+  ])
 
 
   if (!productTransfer) {
@@ -135,7 +137,7 @@ exports.getProductsTransferDetails = asyncHandler(async (req, res, next) => {
     success: true,
     data: productTransfer,
   });
- 
+
 
 
 });
@@ -146,7 +148,7 @@ exports.updateProductTransfer = asyncHandler(async (req, res, next) => {
 
   const _id = req.body._id;
   const body = req.body;
-  console.log("The incoming body has",req.body);
+  console.log("The incoming body has", req.body);
 
   // const reposne = await ProductTransfer.findOneAndUpdate(_id,body);
   const reposne = await ProductTransfer.findByIdAndUpdate(_id, body, {
@@ -169,81 +171,75 @@ exports.updateProductTransfer = asyncHandler(async (req, res, next) => {
 exports.ProductTransfer = asyncHandler(async (req, res, next) => {
 
   console.log("yes the request is coming");
-    let _id = req.body._id;
+  let _id = req.body._id;
 
 
-    //finding the previous quantity 
+  //finding the previous quantity 
 
-    let preQuantity = await ProductTransfer.findById(_id);
+  let preQuantity = await ProductTransfer.findById(_id);
 
-    console.log("The incoming object has",req.body);
-    console.log("The found object has",preQuantity);
-    if(preQuantity){
-      console.log("Pass 1");
-      //comparing quantities 
-      if(preQuantity.quantity == req.body.quantity && preQuantity.employId != req.body.employId){
-            
-            console.log("Pass 2");
-            let newTransferData =  {};
+  console.log("The incoming object has", req.body);
+  console.log("The found object has", preQuantity);
+  if (preQuantity) {
+    console.log("Pass 1");
+    //comparing quantities 
+    if (preQuantity.quantity == req.body.quantity && preQuantity.employId != req.body.employId) {
 
-            newTransferData = req.body
-            newTransferData.transferedFrom = preQuantity.employName;
+      console.log("Pass 2");
+      let newTransferData = {};
 
-            let reposne = await ProductTransfer.findByIdAndUpdate(_id, newTransferData, {
-              new: true,
-              runValidators: true,
-            });
+      newTransferData = req.body
+      newTransferData.transferedFrom = preQuantity.employName;
 
-            res.status(201).json({
-              success: true,
-              data: reposne,
-              message: "Product Transfered Updated Successfully"
-            });
-          
+      let reposne = await ProductTransfer.findByIdAndUpdate(_id, newTransferData, {
+        new: true,
+        runValidators: true,
+      });
 
-      }
-
-     
+      res.status(201).json({
+        success: true,
+        data: reposne,
+        message: "Product Transfered Updated Successfully"
+      });
 
 
-      if(parseInt(preQuantity.quantity) > parseInt(req.body.quantity)  && preQuantity.employId != req.body.employId){
-            
-        console.log("Pass 3");
-            
-        let qd = parseInt(preQuantity.quantity) -  parseInt(req.body.quantity);
-
-        //Updating the previous one
-        let newTransferData =  {};
-        newTransferData = preQuantity;
-        newTransferData.quantity = qd;
-        let reposneUpdate = await ProductTransfer.findByIdAndUpdate(_id, newTransferData, {
-          new: true,
-          runValidators: true,
-        });
-
-
-        //Creating a new one 
-        let newOne = {};
-        newOne = req.body;
-        newOne._id= null;
-        newOne.employName = req.body.transferedTo;
-        newOne.transferedFrom = preQuantity.employName;
-        newOne.transferedTo = "";
-
-        const newRecord = await ProductTransfer.create(newOne);
-
-
-        res.status(201).json({
-          success: true,
-          data: newRecord,
-          message: "Product Transfered Updated Successfully"
-        });
-      
+    }
 
 
 
-  }
 
+    if (parseInt(preQuantity.quantity) > parseInt(req.body.quantity) && preQuantity.employId != req.body.employId) {
+
+      console.log("Pass 3");
+
+      let qd = parseInt(preQuantity.quantity) - parseInt(req.body.quantity);
+
+      //Updating the previous one
+      let newTransferData = {};
+      newTransferData = preQuantity;
+      newTransferData.quantity = qd;
+      let reposneUpdate = await ProductTransfer.findByIdAndUpdate(_id, newTransferData, {
+        new: true,
+        runValidators: true,
+      });
+
+
+      //Creating a new one 
+      let newOne = {};
+      newOne = req.body;
+      newOne._id = null;
+      newOne.employName = req.body.transferedTo;
+      newOne.transferedFrom = preQuantity.employName;
+      newOne.transferedTo = "";
+
+      const newRecord = await ProductTransfer.create(newOne);
+
+
+      res.status(201).json({
+        success: true,
+        data: newRecord,
+        message: "Product Transfered Updated Successfully"
+      });
 
 
 
@@ -253,14 +249,20 @@ exports.ProductTransfer = asyncHandler(async (req, res, next) => {
 
 
 
-  });
+
+  }
+
+
+
+
+});
 
 
 
 
 
-  
-  
+
+
 
 
 ///////////// API'S NOT IN USE ////////////////////
@@ -272,9 +274,9 @@ exports.createPoductTransfer2 = asyncHandler(async (req, res, next) => {
   const ItemId = body.ItemId;
   const employId = body.employId;
 
-  const employeeDetails = await Employee.findOne({_id:employId});
+  const employeeDetails = await Employee.findOne({ _id: employId });
 
-  if(employeeDetails){
+  if (employeeDetails) {
     body.employName = employeeDetails.name;
     body.employID = employeeDetails.employeeId;
   }
@@ -355,14 +357,14 @@ exports.getProductsTransferDetail2 = asyncHandler(async (req, res, next) => {
     // Getting the last id of the group
     const lastUUID = allUniqueIds[allUniqueIds.length - 1]._id
 
-   
+
 
     // finding the quantity of lastly added record for each group id and getting sum
     var totalQuantity = 0;
     await Promise.all(allUniqueIds.map(async (ids) => {
       var uuid = ids._id
       var quantityFound = await ProductTransfer.find({ ItemId: ItemId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
-      
+
 
       if (quantityFound.length > 0) {
 
@@ -394,7 +396,7 @@ exports.getProductsTransferDetail2 = asyncHandler(async (req, res, next) => {
           data.srNo = itemDetails.srNo;
           data.tagNo = itemDetails.tagNo;
           data.QRCodeImage = itemDetails.QRCodeImage;
-      }
+        }
 
         /// calculating the total quantity previously dispatched
         var [{ quantity }] = quantityFound;
@@ -421,11 +423,11 @@ exports.getProductsTransferDetail2 = asyncHandler(async (req, res, next) => {
 
       }
 
-      console.log("The data array has",dataArray);
+      console.log("The data array has", dataArray);
 
       // if (lastUUID === uuid) {
 
-        
+
 
 
       // }
@@ -446,7 +448,7 @@ exports.getProductsTransferDetail2 = asyncHandler(async (req, res, next) => {
     }))
 
 
-    console.log("The final data array has",dataArray);
+    console.log("The final data array has", dataArray);
     //FIND THE QUANTITY IN STOCK
     const stockQuantityfound = await PurchaseProduct.findOne({ _id: ItemId }, { _id: 0, quantity: 1 });
     var stockQuantity = 0;
@@ -570,15 +572,15 @@ exports.modified = asyncHandler(async (req, res, next) => {
   const dataArray = [];
   const allUniqueIds = await ProductTransfer.aggregate([{ $match: { ItemId: mongoose.Types.ObjectId(ItemId) } }, { $group: { _id: "$uuid" } }])
   var totalQuantity = 0;
-  await Promise.all(  allUniqueIds.map(async (ids) => {
+  await Promise.all(allUniqueIds.map(async (ids) => {
     var uuid = ids._id
     var quantityFound = await ProductTransfer.find({ ItemId: ItemId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
-      /// calculating the total quantity previously dispatched
-      var [{ quantity }] = quantityFound;
-      totalQuantity = totalQuantity + parseInt(quantity);
+    /// calculating the total quantity previously dispatched
+    var [{ quantity }] = quantityFound;
+    totalQuantity = totalQuantity + parseInt(quantity);
     const [objectData] = quantityFound;
     dataArray.push(objectData);
-    
+
   }))
 
   //FIND THE QUANTITY IN STOCK
@@ -593,10 +595,10 @@ exports.modified = asyncHandler(async (req, res, next) => {
 
   const inStockQauntity = stockQuantity - totalQuantity;
 
-console.log("The data array has",dataArray);
+  console.log("The data array has", dataArray);
   // sending response       
   res.status(201).json({
-    inStockQauntity:inStockQauntity,
+    inStockQauntity: inStockQauntity,
     success: true,
     data: dataArray,
     message: "Products fetched successfully"
