@@ -68,7 +68,7 @@ exports.getProduct = asyncHandler(async (req, res, next) => {
   if (!product) {
     return next(
       new ErrorResponse(
-        `Product Type not found with id of ${req.params.id}`,
+        `Product not found with id of ${req.params.id}`,
         404
       )
     );
