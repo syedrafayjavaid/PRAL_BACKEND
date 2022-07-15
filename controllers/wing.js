@@ -31,10 +31,7 @@ exports.createWing = asyncHandler(async (req, res, next) => {
 
 exports.getDepartmentWings = asyncHandler(async (req, res, next) => {
 
-
-  const department = req.body.departmentId;
-
-  console.log("This is the id coming", department);
+  const department = req.params.id;
   const wing = await Wing.find({ department });
   if (!wing) {
     return next(
