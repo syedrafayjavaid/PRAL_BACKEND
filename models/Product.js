@@ -42,10 +42,6 @@ const ProductSchema = new mongoose.Schema({
   averagePrice: {
     type: Number,
   },
-  model: {
-    type: String,
-    required: true,
-  },
   categoryName: {
     type: String
   },

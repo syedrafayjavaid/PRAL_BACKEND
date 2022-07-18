@@ -209,12 +209,62 @@ exports.searchFilters = asyncHandler(async (req, res, next) => {
 exports.getEmployProductsCurrentDetails = asyncHandler(async (req, res, next) => {
 
   var EmployId = req.params.id;
+  
 
-  const productTransfer = await ProductTransfer.find({ employId: EmployId });
+  const productTransfer = await ProductTransfer.aggregate([
+    {
+      $match:
+      {
+        employId: mongoose.Types.ObjectId(EmployId)
+      }
+    },
+    {
+      $project: {
+        employId: "$employId",
+        productId: "$productId",
+        ItemId: "$ItemId",
+        quantity: "$quantity",
+        transferedFrom:"$transferedFrom",
+       
+      }
+    }, {
+      $lookup: {
+        from: "products",
+        localField: "productId",
+        foreignField: "_id",
+        as: "products"
+      }
+    }, {
+      $lookup: {
+        from: "employees",
+        localField: "employId",
+        foreignField: "_id",
+        as: "employees"
+      }
+    }, {
+      $lookup: {
+        from: "purchaseproducts",
+        localField: "ItemId",
+        foreignField: "_id",
+        as: "PurchaseProduct"
+      }
+    }
+    , {
+      $lookup: {
+        from: "employees",
+        localField: "transferedFrom",
+        foreignField: "_id",
+        as: "transferedFromEmploy"
+      }
+    }
+    
+  ])
+
+
   if (!productTransfer) {
     return next(
       new ErrorResponse(
-        ` Product not found with id of ${req.params.id}`,
+        ` Product Transfer not found with id of ${req.params.id}`,
         404
       )
     );
@@ -225,33 +275,9 @@ exports.getEmployProductsCurrentDetails = asyncHandler(async (req, res, next) =>
   });
 
 
-
-
-
 });
 
 
-exports.modified = asyncHandler(async (req, res, next) => {
-
-  const employId = req.params.id;
-  const dataArray = [];
-  const allUniqueIds = await ProductTransfer.aggregate([{ $match: { employId: mongoose.Types.ObjectId(employId) } }, { $group: { _id: "$uuid" } }])
-  await Promise.all(allUniqueIds.map(async (ids) => {
-    var uuid = ids._id
-    var quantityFound = await ProductTransfer.find({ employId: employId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
-    console.log("single item has", quantityFound);
-    dataArray.push(quantityFound);
-
-  }))
-  // console.log("The data array has",dataArray);
-  // sending response       
-  res.status(201).json({
-    success: true,
-    data: dataArray,
-    message: "Employs fetched successfully"
-  });
-
-});
 
 
 
@@ -1382,5 +1408,27 @@ exports.searchFiltersOld = asyncHandler(async (req, res, next) => {
   }
 
 
+
+});
+
+exports.modified = asyncHandler(async (req, res, next) => {
+
+  const employId = req.params.id;
+  const dataArray = [];
+  const allUniqueIds = await ProductTransfer.aggregate([{ $match: { employId: mongoose.Types.ObjectId(employId) } }, { $group: { _id: "$uuid" } }])
+  await Promise.all(allUniqueIds.map(async (ids) => {
+    var uuid = ids._id
+    var quantityFound = await ProductTransfer.find({ employId: employId, uuid: uuid }).sort({ createdAt: -1 }).limit(1);
+    console.log("single item has", quantityFound);
+    dataArray.push(quantityFound);
+
+  }))
+  // console.log("The data array has",dataArray);
+  // sending response       
+  res.status(201).json({
+    success: true,
+    data: dataArray,
+    message: "Employs fetched successfully"
+  });
 
 });

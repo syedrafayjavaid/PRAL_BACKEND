@@ -280,7 +280,7 @@ exports.getPurchaseProduct = asyncHandler(async (req, res, next) => {
 
 
     // Calcualting in stock quatity 
-    const stockQuantity = purchaseProduct.quantity;
+    const stockQuantity = purchaseProduct[0].quantity;
     const availableStock = stockQuantity - totalQuantity;
 
     console.log("The stockQuantity ", stockQuantity);

@@ -99,7 +99,10 @@ exports.getProductsTransferDetails = asyncHandler(async (req, res, next) => {
         employId: "$employId",
         productId: "$productId",
         ItemId: "$ItemId",
-        transferedFrom: "$transferedFrom",
+         quantity: "$quantity",
+        transferedFrom:"$transferedFrom",
+      
+       
       }
     }, {
       $lookup: {
@@ -128,9 +131,10 @@ exports.getProductsTransferDetails = asyncHandler(async (req, res, next) => {
         from: "employees",
         localField: "transferedFrom",
         foreignField: "_id",
-        as: "transferedFrom"
+        as: "transferedFromEmploy"
       }
     }
+    
   ])
 
 
@@ -224,22 +228,21 @@ exports.updateProductTransfer = asyncHandler(async (req, res, next) => {
 
 exports.ProductTransfer = asyncHandler(async (req, res, next) => {
 
-  console.log("Yes Product Transfer is called");
+  
   let _id = req.body._id;
 
 
   //finding the previous quantity and employ id 
-
   let preQuantity = await ProductTransfer.findById(_id);
 
-  console.log("The incoming object has", req.body);
-  console.log("The found object has", preQuantity);
+  // console.log("The incoming object has", req.body);
+  // console.log("The found object has", preQuantity);
   if (preQuantity) {
-    console.log("Pass 1");
+    // console.log("Pass 1");
     //comparing quantities  if the both are equal and the employ ids are different updating the previous record 
     if (preQuantity.quantity == req.body.quantity && preQuantity.employId != req.body.employId) {
 
-      console.log("Pass 2");
+      // console.log("Pass 2");
       let newTransferData = {};
       newTransferData = req.body
       newTransferData.transferedFrom = preQuantity.employId;
@@ -297,6 +300,26 @@ exports.ProductTransfer = asyncHandler(async (req, res, next) => {
 
 
     }
+
+    if(parseInt(preQuantity.quantity) < parseInt(req.body.quantity)){
+      return next(
+        new ErrorResponse(
+          `The quantity exceeds the limit that employ currently have`,
+          404
+        )
+        )
+
+    }
+
+  }
+  else{
+
+    return next(
+      new ErrorResponse(
+        `No Transfer request found with id ${ _id}`,
+        404
+      )
+      )
 
   }
 
