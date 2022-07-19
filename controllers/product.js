@@ -5,13 +5,47 @@ const asyncHandler = require("../middleware/async");
 const Product = require("../models/Product");
 
 exports.getProducts = asyncHandler(async (req, res, next) => {
-  const product = await Product.find();
+
+  
+   // NEW API
+   const products = await Product.aggregate([
+
+    {
+      $lookup: {
+        from: "brands",
+        localField: "brandId",
+        foreignField: "_id",
+        as: "brand"
+      }
+    }, {
+      $lookup: {
+        from: "categories",
+        localField: "categoryId",
+        foreignField: "_id",
+        as: "category"
+      }
+    }
+    , {
+      $lookup: {
+        from: "producttypes",
+        localField: "productTypeId",
+        foreignField: "_id",
+        as: "productType"
+      }
+    }
+  ])
+
+
+  //OLD
+  // const product = await Product.find();
 
   res.status(200).json({
     success: true,
-    count: product.length,
-    data: product,
+    count: products.length,
+    data: products,
   });
+
+
 });
 
 exports.createProduct = asyncHandler(async (req, res, next) => {
@@ -144,6 +178,48 @@ exports.deleteProduct = asyncHandler(async (req, res, next) => {
     msg: `Product Type deleted with id: ${req.params.id}`,
   });
 });
+
+exports.getCreatedBySuggestion = asyncHandler(async (req, res, next) => {
+
+  const result = await Product.aggregate([ {$group:{_id:"$createdBy"}}])
+  console.log("Get purchase products all createdBy result",result);
+  if (!result.length) {
+    return next(
+      new ErrorResponse(
+        `No Results found`,
+        404
+      )
+    );
+  }
+  else{
+
+    res.status(200).json({
+      success: true,
+      count: result.length,
+      data: result,
+    });
+
+  }
+
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // if (!req.files) {
 //   return next(new ErrorResponse("Please upload a file", 404));

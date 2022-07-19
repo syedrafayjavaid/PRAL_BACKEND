@@ -8,13 +8,13 @@ const {
   updateEmployee,
   deleteEmployee,
   searchFilters,
-  getEmployProductsCurrentDetails
-
-
+  getEmployProductsCurrentDetails,
+  designationSuggestion
 
 } = require("../controllers/employee");
 router.route("/").get(getEmployees).post(createEmployee);
 router.route("/search").post(searchFilters);
+router.route("/designationSuggestions").post(designationSuggestion);
 router.route("/currentProducts/:id").get(getEmployProductsCurrentDetails);
 router.route("/:id").get(getEmployee).delete(deleteEmployee).put(updateEmployee);
 

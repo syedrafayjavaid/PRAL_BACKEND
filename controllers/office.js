@@ -3,6 +3,7 @@ const uuid4 = require("uuid4");
 const ErrorResponse = require("../utils/errorResponse");
 const asyncHandler = require("../middleware/async");
 const Office = require("../models/Office");
+const PurchaseProduct = require("../models/PurchaseProduct");
 
 exports.getOffices = asyncHandler(async (req, res, next) => {
   const office = await Office.find();
@@ -134,3 +135,105 @@ exports.deleteOffice = asyncHandler(async (req, res, next) => {
     msg: `Office deleted with id: ${req.params.id}`,
   });
 });
+
+exports.searchOffice = asyncHandler(async (req, res, next) => {
+
+
+  // MAKING VARIABLES NEEDED
+
+  const name = req.body.name;
+  const city = req.body.city;
+  const email = req.body.email;
+  const phone = req.body.phone;
+
+
+  const query = {};
+
+  // MAKING A QUERY
+  if (name !== "") {
+    query.name = name;
+  }
+  if (city !== "") {
+    query.city = city;
+  }
+  if (email !== "") {
+    query.email = email;
+  }
+  if (phone !== "") {
+    query.phone = phone;
+  }
+  
+
+
+  console.log("The query has", query);
+
+  // FINDING THE RESULTS AGAINTS QUERY
+  const result = await Office.find(query)
+
+  
+  if (!result.length) {
+    return next(
+      new ErrorResponse(
+        `No Results found`,
+        404
+      )
+    );
+  }
+  res.status(201).json({
+    success: true,
+    count: result.length,
+    data: result,
+  });
+
+
+
+});
+
+exports.MultiSuggestion = asyncHandler(async (req, res, next) => {
+
+  const city = await Office.aggregate([
+
+    {
+      $group:{_id:"$city"}
+    }
+  
+
+  ])
+  const name = await Office.aggregate([
+
+    {
+      $group:{_id:"$name"}
+    }
+  
+
+  ])
+  const phone = await Office.aggregate([
+
+    {
+      $group:{_id:"$phone"}
+    }
+  
+
+  ])
+  const email = await Office.aggregate([
+
+    {
+      $group:{_id:"$email"}
+    }
+  
+
+  ])
+
+
+  res.status(201).json({
+    success: true,
+    cities: city,
+    phones:phone,
+    emails:email,
+    names:name,
+  });
+
+ 
+
+});
+

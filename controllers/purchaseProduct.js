@@ -679,6 +679,148 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
 });
 
 
+exports.getCreatedBySuggestion = asyncHandler(async (req, res, next) => {
+
+  const result = await PurchaseProduct.aggregate([ {$group:{_id:"$createdBy"}}])
+  // console.log("Get purchase products all createdBy result",result);
+  if (!result.length) {
+    return next(
+      new ErrorResponse(
+        `No Results found`,
+        404
+      )
+    );
+  }
+  else{
+
+    res.status(200).json({
+      success: true,
+      count: result.length,
+      data: result,
+    });
+
+  }
+
+});
+
+exports.getVendorsSuggestion = asyncHandler(async (req, res, next) => {
+
+ 
+  const result = await PurchaseProduct.aggregate([
+
+     {$group:
+      {
+        _id:"$venderEmail",
+        vendorName:{"$first":"$venderName"}
+        // doc:{"$first":"$$ROOT"}
+      }
+  }
+  
+  ]);
+
+  if (!result.length) {
+    return next(
+      new ErrorResponse(
+        `No Results found`,
+        404
+      )
+    );
+  }
+  else{
+
+    res.status(200).json({
+      success: true,
+      count: result.length,
+      data: result,
+    });
+
+  }
+
+});
+
+exports.getallFeaturesSuggestion = asyncHandler(async (req, res, next) => {
+
+
+  const result = await PurchaseProduct.aggregate([
+
+    {
+      $unwind:"$features"
+    },
+    {$group:
+      {
+        _id:"$features"
+      }
+    }
+  
+  ]);
+
+  if (!result.length) {
+    return next(
+      new ErrorResponse(
+        `No Results found`,
+        404
+      )
+    );
+  }
+  else{
+
+    res.status(200).json({
+      success: true,
+      count: result.length,
+      data: result,
+    });
+
+  }
+
+});
+
+exports.getProductFeaturesSuggestion = asyncHandler(async (req, res, next) => {
+
+  const id = req.params.id;
+ 
+  console.log("incoming object id isssss",id);
+
+  const result = await PurchaseProduct.aggregate([
+    {
+      $match:{
+        productId:mongoose.Types.ObjectId(id)
+      }
+    },
+    {
+      $unwind:"$features"
+    },
+    {
+      $group:
+      {
+        _id:"$features"
+      }
+    }
+  
+  ]);
+
+  if (!result.length) {
+    return next(
+      new ErrorResponse(
+        `No Results found`,
+        404
+      )
+    );
+  }
+  else{
+
+    res.status(200).json({
+      success: true,
+      count: result.length,
+      data: result,
+    });
+
+  }
+
+});
+
+
+
+
 
 
 // API'S NOT IN USE

@@ -3,6 +3,9 @@ const uuid4 = require("uuid4");
 const ErrorResponse = require("../utils/errorResponse");
 const asyncHandler = require("../middleware/async");
 const Department = require("../models/Department");
+const Wing = require("../models/Wing");
+const { default: mongoose } = require("mongoose");
+
 
 exports.getDepartments = asyncHandler(async (req, res, next) => {
   const department = await Department.find();
@@ -74,4 +77,70 @@ exports.deleteDepartment = asyncHandler(async (req, res, next) => {
     success: true,
     msg: `Department deleted with id: ${req.params.id}`,
   });
+});
+
+
+exports.searchDepartment = asyncHandler(async (req, res, next) => {
+
+  console.log("Yes i am getting called  ");
+
+  // MAKING VARIABLES NEEDED
+  const departmentId = req.body.departmentId;
+  const wingName = req.body.wingName;
+
+
+  const query = {};
+
+  // MAKING A QUERY
+  if (departmentId !== "") {
+    query.department = departmentId;
+  }
+  if (wingName !== "") {
+    query.name = wingName;
+  }
+  
+  
+  console.log("The query has", query);
+
+  //FINDING THE RESULTS AGAINTS QUERY
+  const result = await Wing.aggregate([
+    {
+      $match: query
+    }
+    ,
+    {
+      $lookup: {
+        from: "departments",
+        localField: "department",
+        foreignField: "_id",
+        as: "department"
+      }
+    },
+    {
+      $project:
+       {
+        departments : "$department"
+      }
+    }
+
+  ])
+
+
+  
+  if (!result.length) {
+    return next(
+      new ErrorResponse(
+        `No Results found`,
+        404
+      )
+    );
+  }
+  res.status(201).json({
+    success: true,
+    count: result.length,
+    data: result,
+  });
+
+
+
 });

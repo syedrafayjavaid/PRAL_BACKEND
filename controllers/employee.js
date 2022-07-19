@@ -12,13 +12,37 @@ const { default: mongoose } = require("mongoose");
 
 
 exports.getEmployees = asyncHandler(async (req, res, next) => {
-  const employee = await Employee.find();
+
+  // NEW API
+  const result = await Employee.aggregate([
+
+    {
+      $lookup: {
+        from: "wings",
+        localField: "wing",
+        foreignField: "_id",
+        as: "wing"
+      }
+    }, {
+      $lookup: {
+        from: "offices",
+        localField: "officeId",
+        foreignField: "officeId",
+        as: "office"
+      }
+    }
+  ])
+
+
+  //OLD
+  // const employee = await Employee.find();
   res.status(200).json({
     success: true,
-    count: employee.length,
-    data: employee,
+    count: result.length,
+    data: result,
   });
 });
+
 
 exports.createEmployee = asyncHandler(async (req, res, next) => {
 
@@ -138,7 +162,6 @@ exports.deleteEmployee = asyncHandler(async (req, res, next) => {
   });
 });
 
-
 exports.searchFilters = asyncHandler(async (req, res, next) => {
 
 
@@ -148,6 +171,7 @@ exports.searchFilters = asyncHandler(async (req, res, next) => {
   const designation = req.body.designation;
   const location = req.body.location;
   const department = req.body.department;
+  const pg = req.body.pg;
   const sDate = req.body.startDate;
   const eDate = req.body.endDate;
 
@@ -165,13 +189,16 @@ exports.searchFilters = asyncHandler(async (req, res, next) => {
 
   // MAKING A QUERY
   if (employeeId !== "") {
-    query.employeeId = employeeId;
+    query._id = employeeId;
   }
   if (designation !== "") {
     query.designation = designation;
   }
   if (location !== "") {
     query.officeId = location;
+  }
+  if (pg !== "") {
+    query.pg = pg;
   }
   if (department !== "") {
     query.department = department;
@@ -204,6 +231,25 @@ exports.searchFilters = asyncHandler(async (req, res, next) => {
 
 });
 
+exports.designationSuggestion = asyncHandler(async (req, res, next) => {
+
+  const result = await Employee.aggregate([
+
+    {
+      $group:{_id:"$designation"}
+    }
+  
+  ])
+ 
+  res.status(201).json({
+    success: true,
+    count:  result.length,
+    data: result,
+  });
+
+ 
+
+});
 
 
 exports.getEmployProductsCurrentDetails = asyncHandler(async (req, res, next) => {
