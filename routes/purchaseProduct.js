@@ -11,7 +11,8 @@ const {
   getCreatedBySuggestion,
   getVendorsSuggestion,
   getallFeaturesSuggestion,
-  getProductFeaturesSuggestion
+  getProductFeaturesSuggestion,
+  qrBasedSearch
 
 } = require("../controllers/purchaseProduct");
 // router.route("/vendors").get(searchVendors);
@@ -22,6 +23,7 @@ router.route("/vendorsSuggestions").post(getVendorsSuggestion)
 router.route("/searchFilters").post(searchPurchaseProduct);
 router.route("/allFeaturesSuggestions").post(getallFeaturesSuggestion);
 router.route("/allFeaturesSuggestions/:id").post(getProductFeaturesSuggestion);
+router.route("/qrBasedSearch/:id").get(qrBasedSearch);
 
 
 module.exports = router;

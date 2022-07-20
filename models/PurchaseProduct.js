@@ -77,6 +77,9 @@ PurchaseProductSchema = new mongoose.Schema({
   features: {
     type: Array,
   },
+  qrUUID: {
+    type: String,
+  },
   custodian: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
   productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
   officeId: { type: mongoose.Schema.Types.ObjectId, ref: "Office" },

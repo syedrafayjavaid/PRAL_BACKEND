@@ -30,6 +30,20 @@ exports.getEmployees = asyncHandler(async (req, res, next) => {
         foreignField: "officeId",
         as: "office"
       }
+    }, {
+      $lookup: {
+        from: "departments",
+        localField: "officeId",
+        foreignField: "officeId",
+        as: "office"
+      }
+    }, {
+      $lookup: {
+        from: "offices",
+        localField: "officeId",
+        foreignField: "officeId",
+        as: "office"
+      }
     }
   ])
 

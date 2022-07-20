@@ -819,6 +819,36 @@ exports.getProductFeaturesSuggestion = asyncHandler(async (req, res, next) => {
 });
 
 
+exports.qrBasedSearch = asyncHandler(async (req, res, next) => {
+
+  console.log("yes i am called")
+  console.log("yes i am called")
+  
+  const id = req.params.id;
+
+  console.log("The incoming id is",id);
+  const result = await PurchaseProduct.find({qrUUID:id});
+
+  if (!result.length) {
+    return next(
+      new ErrorResponse(
+        `No Results found`,
+        404
+      )
+    );
+  }
+  else{
+
+    res.status(200).json({
+      success: true,
+      count: result.length,
+      data: result,
+    });
+
+  }
+
+});
+
 
 
 
