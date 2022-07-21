@@ -821,13 +821,35 @@ exports.getProductFeaturesSuggestion = asyncHandler(async (req, res, next) => {
 
 exports.qrBasedSearch = asyncHandler(async (req, res, next) => {
 
-  console.log("yes i am called")
-  console.log("yes i am called")
   
   const id = req.params.id;
 
-  console.log("The incoming id is",id);
-  const result = await PurchaseProduct.find({qrUUID:id});
+  
+    const result = await PurchaseProduct.aggregate([
+      {
+        $match: {
+          qrUUID:id
+        }
+      },
+      {
+        $lookup: {
+          from: "products",
+          localField: "productId",
+          foreignField: "_id",
+          as: "product"
+        }
+      }, {
+        $lookup: {
+          from: "offices",
+          localField: "officeId",
+          foreignField: "_id",
+          as: "office"
+        }
+      }
+    ])
+
+  // console.log("The incoming id is",id);
+  // const result = await PurchaseProduct.find({qrUUID:id});
 
   if (!result.length) {
     return next(
@@ -848,6 +870,18 @@ exports.qrBasedSearch = asyncHandler(async (req, res, next) => {
   }
 
 });
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -7,6 +7,7 @@ const ProductTransfer = require("../models/ProductTransfer");
 const PurchaseProduct = require("../models/PurchaseProduct");
 const Product = require("../models/Product");
 const { default: mongoose } = require("mongoose");
+const { count } = require("console");
 
 
 
@@ -336,6 +337,141 @@ exports.getEmployProductsCurrentDetails = asyncHandler(async (req, res, next) =>
 
 
 });
+
+
+
+exports.magic = asyncHandler(async (req, res, next) => {
+
+
+  console.log("Yes the magic api is called");
+
+  /////////////////// first Implemendation ////////////////////////////////
+  // find all emp 
+  // const allEmploys = await Employee.find();
+
+  // maping all employs
+  //  const result = await Promise.all(allEmploys.map( async (item)=>{
+
+  //   console.log("The Item has", item)
+  //   // getting employ mongoose id
+  //     const employID = item._id;
+  //   // Getting the reporting manager name
+  //     const reportingManagerName = item.reportingManager;
+
+  //   // find the reporing manager Id in db 
+  //   const reportingManagerRecord = await Employee.findOne({name:reportingManagerName});
+
+  //   if(reportingManagerRecord){
+
+  //     // getting reporting manager id
+  //     const repotingManangerId = reportingManagerRecord._id;
+
+  //     // Changing the nreporting manager name to mongoose id 
+  //     const EmpData = item;
+  //     EmpData.reportingManager = repotingManangerId;
+      
+  //     // updating the remploy record with reporting manager id found
+  //     const UpdateEmploy =  await Employee.updateOne({_id:employID},EmpData)
+
+
+  //   }
+
+
+  // })
+
+  // )
+
+
+  ///////////// Second Implementation //////////////
+ 
+  let uniqueArray = [];
+  const employWitRepotingManager = await Employee.aggregate([
+    {
+      $lookup: {
+        from: "employees",
+        localField: "reportingManager",
+        foreignField: "name",
+        as: "reportingManagerDetails"
+      }
+    }
+
+  ])
+
+  const employsNotFound = [];
+
+  if(employWitRepotingManager){
+    let counting = 0;
+    const result = employWitRepotingManager.map((item)=>{ 
+      if(item.reportingManagerDetails.length == 0){
+        employsNotFound.push(item.reportingManager)
+       
+      }
+    
+      // const data = item
+      // console.log("the reporting mmanger Id has",item.reportingManagerDetails[0]._id);
+      // // data.reportingManager = item.reportingManagerDetails[0]._id;
+      // data.reportingManagerDetails = null;
+      
+    })
+    
+    // console.log("Employs Not found list",employsNotFound);
+
+
+    const ages = [26, 27, 26, 26, 28, 28, 29, 29, 30]
+      uniqueArray = Array.from(new Set(employsNotFound));
+      console.log("the unique array has",uniqueArray)
+
+
+
+
+
+
+
+
+
+  }
+
+
+
+// console.log("The result has",result);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // if (!productTransfer) {
+  //   return next(
+  //     new ErrorResponse(
+  //       ` Product Transfer not found with id of ${req.params.id}`,
+  //       404
+  //     )
+  //   );
+  // }
+  if(employWitRepotingManager){
+
+    res.status(200).json({
+      success: true,
+      count:uniqueArray.length,
+      data: uniqueArray,
+    });
+  
+
+  }
+ 
+
+});
+
+
 
 
 

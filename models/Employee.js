@@ -56,6 +56,15 @@ const EmployeeSchema = new mongoose.Schema({
   modifiedAt: {
     type: Date,
   },
+  gender: {
+    type: String,
+  },
+  jobTitle: {
+    type: String,
+  },
+  dob: {
+    type: String,
+  },
   wing: { type: mongoose.Schema.Types.ObjectId, ref: "Wing" },
   department: { type: mongoose.Schema.Types.ObjectId, ref: "Department" },
   officeId: { type: mongoose.Schema.Types.ObjectId, ref: "Office" },

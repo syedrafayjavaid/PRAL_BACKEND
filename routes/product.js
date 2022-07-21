@@ -7,12 +7,14 @@ const {
   getProduct,
   updateProduct,
   deleteProduct,
-  getCreatedBySuggestion
+  getCreatedBySuggestion,
+  searchProducts
 } = require("../controllers/product");
 
 router.route("/").get(getProducts).post(createProduct);
 router.route("/:id").get(getProduct).delete(deleteProduct).put(updateProduct);
-router.route("/createdBySuggestions").post(getCreatedBySuggestion)
+router.route("/createdBySuggestions").post(getCreatedBySuggestion);
+router.route("/searchProducts").post(searchProducts);
 
 
 module.exports = router;

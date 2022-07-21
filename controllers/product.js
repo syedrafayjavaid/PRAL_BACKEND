@@ -98,7 +98,40 @@ exports.createProduct = asyncHandler(async (req, res, next) => {
 });
 
 exports.getProduct = asyncHandler(async (req, res, next) => {
-  const product = await Product.findById(req.params.id);
+
+ 
+   // NEW API
+   const product = await Product.aggregate([
+    {
+      $match:{_id:req.params.id}
+    },
+    {
+      $lookup: {
+        from: "brands",
+        localField: "brandId",
+        foreignField: "_id",
+        as: "brand"
+      }
+    }, {
+      $lookup: {
+        from: "categories",
+        localField: "categoryId",
+        foreignField: "_id",
+        as: "category"
+      }
+    }
+    , {
+      $lookup: {
+        from: "producttypes",
+        localField: "productTypeId",
+        foreignField: "_id",
+        as: "productType"
+      }
+    }
+  ])
+
+  // OLD
+  // const product = await Product.findById(req.params.id);
   if (!product) {
     return next(
       new ErrorResponse(
@@ -203,6 +236,94 @@ exports.getCreatedBySuggestion = asyncHandler(async (req, res, next) => {
 
 });
 
+exports.searchProducts = asyncHandler(async (req, res, next) => {
+
+  console.log("Serach products api resposne");
+
+  // MAKING VARIABLES NEEDED
+
+  const productId = req.body.productId;
+  const productTypeId = req.body.productTypeId;
+  const categoryId = req.body.categoryId;
+  const brandId = req.body.brandId;
+  const createdBy = req.body.createdBy;
+
+
+  const query = {};
+
+  // MAKING A QUERY
+  if (productId !== "") {
+    query._id = productId;
+  }
+  if (productTypeId !== "") {
+    query.productTypeId = productTypeId;
+  }
+  if (categoryId !== "") {
+    query.categoryId = categoryId;
+  }
+  if (brandId !== "") {
+    query.brandId = brandId;
+  }
+  if (createdBy !== "") {
+    query.createdBy = createdBy;
+  }
+  
+
+
+  console.log("The query has", query);
+
+  // FINDING THE RESULTS AGAINTS QUERY
+    const result = await Product.aggregate([
+      {
+        $match:query
+      },
+      {
+        $lookup: {
+          from: "brands",
+          localField: "brandId",
+          foreignField: "_id",
+          as: "brand"
+        }
+      }, {
+        $lookup: {
+          from: "categories",
+          localField: "categoryId",
+          foreignField: "_id",
+          as: "category"
+        }
+      }
+      , {
+        $lookup: {
+          from: "producttypes",
+          localField: "productTypeId",
+          foreignField: "_id",
+          as: "productType"
+        }
+      }
+    ])
+  
+
+  //OLD
+  // const result = await Product.find(query)
+
+  
+  if (!result.length) {
+    return next(
+      new ErrorResponse(
+        `No Results found`,
+        404
+      )
+    );
+  }
+  res.status(201).json({
+    success: true,
+    count: result.length,
+    data: result,
+  });
+
+
+
+});
 
 
 
