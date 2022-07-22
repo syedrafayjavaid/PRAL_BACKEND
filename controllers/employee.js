@@ -8,6 +8,7 @@ const PurchaseProduct = require("../models/PurchaseProduct");
 const Product = require("../models/Product");
 const { default: mongoose } = require("mongoose");
 const { count } = require("console");
+const { updateOne } = require("../models/Employee");
 
 
 
@@ -180,6 +181,8 @@ exports.deleteEmployee = asyncHandler(async (req, res, next) => {
 exports.searchFilters = asyncHandler(async (req, res, next) => {
 
 
+  console.log("The incoming request has",req.body);
+
   // MAKING VARIABLES NEEDED
 
   const employeeId = req.body.employeeId;
@@ -199,6 +202,7 @@ exports.searchFilters = asyncHandler(async (req, res, next) => {
   endDate.setHours(0, 0, 0, 0);
 
 
+  console.log("the s date has",sDate)
 
   const query = {};
 
@@ -382,10 +386,10 @@ exports.magic = asyncHandler(async (req, res, next) => {
   // )
 
 
-  ///////////// Second Implementation //////////////
+  ///////////// Second Implementation Reporting Manager //////////////
  
-  let uniqueArray = [];
   const employWitRepotingManager = await Employee.aggregate([
+   
     {
       $lookup: {
         from: "employees",
@@ -393,33 +397,35 @@ exports.magic = asyncHandler(async (req, res, next) => {
         foreignField: "name",
         as: "reportingManagerDetails"
       }
-    }
-
+    },
   ])
 
-  const employsNotFound = [];
+
+  var refinedData  = [];
 
   if(employWitRepotingManager){
-    let counting = 0;
-    const result = employWitRepotingManager.map((item)=>{ 
-      if(item.reportingManagerDetails.length == 0){
-        employsNotFound.push(item.reportingManager)
+ 
+    const result = await Promise.all( employWitRepotingManager.map(async (item)=>{ 
+      if(item.reportingManagerDetails.length != 0){
        
+      let data ={};
+       data = item
+      data.reportingManager = item.reportingManagerDetails[0]._id;
+      data.reportingManagerDetails = undefined;
+      data.wing = undefined;
+      // data.officeId = undefined;
+
+      refinedData.push(data)
+        console.log("The id to update has",item._id);
+      const updateRecord = await Employee.updateOne({_id:item._id},data)
+       console.log("The update response is",updateRecord);
       }
     
-      // const data = item
-      // console.log("the reporting mmanger Id has",item.reportingManagerDetails[0]._id);
-      // // data.reportingManager = item.reportingManagerDetails[0]._id;
-      // data.reportingManagerDetails = null;
+ 
       
-    })
+    }))
     
-    // console.log("Employs Not found list",employsNotFound);
-
-
-    const ages = [26, 27, 26, 26, 28, 28, 29, 29, 30]
-      uniqueArray = Array.from(new Set(employsNotFound));
-      console.log("the unique array has",uniqueArray)
+    console.log("final data array has",refinedData);
 
 
 
@@ -433,8 +439,8 @@ exports.magic = asyncHandler(async (req, res, next) => {
 
 
 
-// console.log("The result has",result);
 
+console.log("The final result has",employWitRepotingManager);
 
 
 
@@ -461,15 +467,77 @@ exports.magic = asyncHandler(async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      count:uniqueArray.length,
-      data: uniqueArray,
+      count:employWitRepotingManager.length,
+      data: employWitRepotingManager,
     });
   
-
   }
  
 
 });
+
+
+
+exports.magicOffice = asyncHandler(async (req, res, next) => {
+
+
+
+  const result = await Employee.aggregate([
+
+    {
+      $lookup: {
+        from: "offices",
+        localField: "officeId",
+        foreignField: "officeId",
+        as: "office"
+      }
+    },
+  ])
+  
+
+
+//   var refinedData  = [];
+
+//   if(employWitRepotingManager){
+ 
+//     const result = await Promise.all( employWitRepotingManager.map(async (item)=>{ 
+//       if(item.reportingManagerDetails.length != 0){
+       
+//       let data ={};
+//        data = item
+//       data.reportingManager = item.reportingManagerDetails[0]._id;
+//       data.reportingManagerDetails = undefined;
+//       data.wing = undefined;
+//       // data.officeId = undefined;
+
+//       refinedData.push(data)
+//         console.log("The id to update has",item._id);
+//       const updateRecord = await Employee.updateOne({_id:item._id},data)
+//        console.log("The update response is",updateRecord);
+//       }
+    
+//     }))
+    
+//     console.log("final data array has",refinedData);
+
+//   }
+
+// console.log("The final result has",employWitRepotingManager);
+//   if(employWitRepotingManager){
+
+    res.status(200).json({
+      success: true,
+      count:result.length,
+      data: result,
+    });
+  
+  // }
+ 
+
+});
+
+
+
 
 
 

@@ -237,3 +237,62 @@ exports.MultiSuggestion = asyncHandler(async (req, res, next) => {
 
 });
 
+exports.magicOffice = asyncHandler(async (req, res, next) => {
+
+
+  console.log("Yes the magic office api is called");
+
+  const employWitRepotingManager = await Office.aggregate([
+   
+    {
+      $lookup: {
+        from: "Offices",
+        localField: "officeId",
+        foreignField: "officeId",
+        as: "officeDetails"
+      }
+    },
+  ])
+
+
+  var refinedData  = [];
+
+  if(employWitRepotingManager){
+ 
+    const result = await Promise.all( employWitRepotingManager.map(async (item)=>{ 
+      if(item.reportingManagerDetails.length != 0){
+       
+      let data ={};
+       data = item
+      data.reportingManager = item.reportingManagerDetails[0]._id;
+      data.reportingManagerDetails = undefined;
+      data.wing = undefined;
+      // data.officeId = undefined;
+
+      refinedData.push(data)
+        console.log("The id to update has",item._id);
+      const updateRecord = await Employee.updateOne({_id:item._id},data)
+       console.log("The update response is",updateRecord);
+      }
+    
+    }))
+    
+    console.log("final data array has",refinedData);
+
+  }
+
+console.log("The final result has",employWitRepotingManager);
+  if(employWitRepotingManager){
+
+    res.status(200).json({
+      success: true,
+      count:employWitRepotingManager.length,
+      data: employWitRepotingManager,
+    });
+  
+  }
+ 
+
+});
+
+

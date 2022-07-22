@@ -48,7 +48,7 @@ exports.getAllPurchaseProducts = asyncHandler(async (req, res, next) => {
 
 
 exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
-  // console.log("Purcahase Prod incomming req", req.body);
+  console.log("Purcahase Prod incomming req", req.body);
   const getLastPurchaseProduct = await PurchaseProduct.find({})
     .sort({ _id: -1 })
     .limit(1);
@@ -203,6 +203,9 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
 
   // Creating the purchased item new record
   const body = req.body;
+  const featuresArray = body.features.split(",");
+  body.features = featuresArray;
+  // console.log("My own created features array has",featuresArray);
   // body.inStore = req.body.quantity;
   const purchaseProduct = await PurchaseProduct.create(body);
 
@@ -562,6 +565,10 @@ exports.deletePurchaseProduct = asyncHandler(async (req, res, next) => {
 
 
 exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
+
+
+
+  console.log("The incoming Purchase product req", req.body);
 
 
   // MAKING VARIABLES NEEDED
