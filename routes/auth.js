@@ -6,13 +6,15 @@ const {
   getUsers,
   loginUser,
   deleteUser,
-  superUser
+  superUser,
+  searchFilters
 } = require("../controllers/auth");
 
 router.route("/register").post(registerUser);
 router.route("/login").post(loginUser);
 router.route("/users").get(getUsers);
 router.route("/SA").post(superUser);
+router.route("/searchFilters").post(searchFilters);
 router.route("/:id").delete(deleteUser);
 
 module.exports = router;

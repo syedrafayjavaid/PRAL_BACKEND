@@ -29,22 +29,22 @@ exports.getEmployees = asyncHandler(async (req, res, next) => {
       $lookup: {
         from: "offices",
         localField: "officeId",
-        foreignField: "officeId",
+        foreignField: "_id",
         as: "office"
       }
     }, {
       $lookup: {
         from: "departments",
-        localField: "officeId",
-        foreignField: "officeId",
-        as: "office"
+        localField: "department",
+        foreignField: "_id",
+        as: "department"
       }
     }, {
       $lookup: {
-        from: "offices",
-        localField: "officeId",
-        foreignField: "officeId",
-        as: "office"
+        from: "employees",
+        localField: "reportingManager",
+        foreignField: "_id",
+        as: "reportingManager"
       }
     }
   ])
@@ -181,7 +181,7 @@ exports.deleteEmployee = asyncHandler(async (req, res, next) => {
 exports.searchFilters = asyncHandler(async (req, res, next) => {
 
 
-  console.log("The incoming request has",req.body);
+  console.log("The emply search filters are called",req.body);
 
   // MAKING VARIABLES NEEDED
 
@@ -202,27 +202,26 @@ exports.searchFilters = asyncHandler(async (req, res, next) => {
   endDate.setHours(0, 0, 0, 0);
 
 
-  console.log("the s date has",sDate)
 
   const query = {};
 
   // MAKING A QUERY
   if (employeeId !== "") {
-    query._id = employeeId;
+    query._id =  mongoose.Types.ObjectId(employeeId);
   }
   if (designation !== "") {
     query.designation = designation;
   }
   if (location !== "") {
-    query.officeId = location;
+    query.officeId = parseInt(location);
   }
   if (pg !== "") {
-    query.pg = pg;
+    query.pg = parseInt(pg);
   }
   if (department !== "") {
     query.department = department;
   }
-  if (sDate !== "" && eDate) {
+  if (sDate !== "" && eDate!== "") {
     query.dateOfJoining = { $gte: new Date(startDate), $lte: new Date(endDate) };
   }
 
@@ -230,8 +229,48 @@ exports.searchFilters = asyncHandler(async (req, res, next) => {
 
   console.log("The query has", query);
 
+
+  
   // FINDING THE RESULTS AGAINTS QUERY
-  let result = await Employee.find(query);
+  const result = await Employee.aggregate([
+
+    {
+      $match:query
+    },
+    {
+      $lookup: {
+        from: "wings",
+        localField: "wing",
+        foreignField: "_id",
+        as: "wing"
+      }
+    }, {
+      $lookup: {
+        from: "offices",
+        localField: "officeId",
+        foreignField: "_id",
+        as: "office"
+      }
+    }, {
+      $lookup: {
+        from: "departments",
+        localField: "department",
+        foreignField: "_id",
+        as: "department"
+      }
+    }, {
+      $lookup: {
+        from: "employees",
+        localField: "reportingManager",
+        foreignField: "_id",
+        as: "reportingManager"
+      }
+    }
+  ])
+   
+
+  //OLD
+  // let result = await Employee.find(query);
   if (!result.length) {
     return next(
       new ErrorResponse(
@@ -290,6 +329,7 @@ exports.getEmployProductsCurrentDetails = asyncHandler(async (req, res, next) =>
         ItemId: "$ItemId",
         quantity: "$quantity",
         transferedFrom:"$transferedFrom",
+        createdAt:"$createdAt"
        
       }
     }, {
@@ -482,7 +522,7 @@ exports.magicOffice = asyncHandler(async (req, res, next) => {
 
 
 
-  const result = await Employee.aggregate([
+  const employWitRepotingManager = await Employee.aggregate([
 
     {
       $lookup: {
@@ -496,34 +536,34 @@ exports.magicOffice = asyncHandler(async (req, res, next) => {
   
 
 
-//   var refinedData  = [];
+  var refinedData  = [];
 
-//   if(employWitRepotingManager){
+  if(employWitRepotingManager){
  
-//     const result = await Promise.all( employWitRepotingManager.map(async (item)=>{ 
-//       if(item.reportingManagerDetails.length != 0){
+    const result = await Promise.all( employWitRepotingManager.map(async (item)=>{ 
+      if(item.office.length != 0){
        
-//       let data ={};
-//        data = item
-//       data.reportingManager = item.reportingManagerDetails[0]._id;
-//       data.reportingManagerDetails = undefined;
-//       data.wing = undefined;
-//       // data.officeId = undefined;
+      let data ={};
+       data = item
+      data.officeId = item.office[0]._id;
+      data.office = undefined;
+      data.wing = undefined;
+      // data.officeId = undefined;
 
-//       refinedData.push(data)
-//         console.log("The id to update has",item._id);
-//       const updateRecord = await Employee.updateOne({_id:item._id},data)
-//        console.log("The update response is",updateRecord);
-//       }
+      refinedData.push(data)
+        console.log("The id to update has",item._id);
+      const updateRecord = await Employee.updateOne({_id:item._id},data)
+       console.log("The update response is",updateRecord);
+      }
     
-//     }))
+    }))
     
-//     console.log("final data array has",refinedData);
+    console.log("final data array has",refinedData);
 
-//   }
+  }
 
-// console.log("The final result has",employWitRepotingManager);
-//   if(employWitRepotingManager){
+console.log("The final result has",employWitRepotingManager);
+  if(employWitRepotingManager){
 
     res.status(200).json({
       success: true,
@@ -531,7 +571,7 @@ exports.magicOffice = asyncHandler(async (req, res, next) => {
       data: result,
     });
   
-  // }
+  }
  
 
 });
@@ -545,7 +585,11 @@ exports.magicOffice = asyncHandler(async (req, res, next) => {
 
 
 
+
+
 // API'S NOT IN USE
+
+
 
 exports.searchFiltersOld = asyncHandler(async (req, res, next) => {
 

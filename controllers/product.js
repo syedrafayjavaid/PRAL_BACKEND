@@ -3,6 +3,7 @@ const uuid4 = require("uuid4");
 const ErrorResponse = require("../utils/errorResponse");
 const asyncHandler = require("../middleware/async");
 const Product = require("../models/Product");
+const { default: mongoose, Mongoose } = require("mongoose");
 
 exports.getProducts = asyncHandler(async (req, res, next) => {
 
@@ -103,7 +104,9 @@ exports.getProduct = asyncHandler(async (req, res, next) => {
    // NEW API
    const product = await Product.aggregate([
     {
-      $match:{_id:req.params.id}
+      $match:{
+        _id: mongoose.Types.ObjectId(req.params.id)
+      }
     },
     {
       $lookup: {
@@ -253,16 +256,16 @@ exports.searchProducts = asyncHandler(async (req, res, next) => {
 
   // MAKING A QUERY
   if (productId !== "") {
-    query._id = productId;
+    query._id =  mongoose.Types.ObjectId(productId)
   }
   if (productTypeId !== "") {
-    query.productTypeId = productTypeId;
+    query.productTypeId =  mongoose.Types.ObjectId(productTypeId)
   }
   if (categoryId !== "") {
-    query.categoryId = categoryId;
+    query.categoryId =  mongoose.Types.ObjectId(categoryId)
   }
   if (brandId !== "") {
-    query.brandId = brandId;
+    query.brandId =  mongoose.Types.ObjectId(brandId)
   }
   if (createdBy !== "") {
     query.createdBy = createdBy;

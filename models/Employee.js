@@ -65,10 +65,12 @@ const EmployeeSchema = new mongoose.Schema({
   dob: {
     type: String,
   },
+  // officeId: { 
+  //   type: Number
+  // },
+  officeId: { type: mongoose.Schema.Types.ObjectId, ref: "Office" },
   wing: { type: mongoose.Schema.Types.ObjectId, ref: "Wing" },
   department: { type: mongoose.Schema.Types.ObjectId, ref: "Department" },
-  // officeId: { type: mongoose.Schema.Types.ObjectId, ref: "Office" },
-  officeId: { type: String},
   purchasedItems: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
   reportingManager: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
 });

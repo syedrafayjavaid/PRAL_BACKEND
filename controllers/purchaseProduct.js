@@ -6,7 +6,7 @@ const PurchaseProduct = require("../models/PurchaseProduct");
 const ProductTransfer = require("../models/ProductTransfer");
 const Product = require("../models/Product");
 const Employee = require("../models/Employee");
-const { default: mongoose } = require("mongoose");
+const { default: mongoose, Mongoose } = require("mongoose");
 const { all } = require("../routes/productTransfer");
 
 
@@ -203,8 +203,11 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
 
   // Creating the purchased item new record
   const body = req.body;
-  const featuresArray = body.features.split(",");
-  body.features = featuresArray;
+  if(body.features){
+    const featuresArray = body.features.split(",");
+    body.features = featuresArray;
+  }
+
   // console.log("My own created features array has",featuresArray);
   // body.inStore = req.body.quantity;
   const purchaseProduct = await PurchaseProduct.create(body);
@@ -233,7 +236,7 @@ exports.getPurchaseProduct = asyncHandler(async (req, res, next) => {
 
     {
       $match: {
-        _id: mongoose.Types.ObjectId(req.params.id)
+        _id:  mongoose.Types.ObjectId(req.params.id)
       }
     },
     {
@@ -302,6 +305,13 @@ exports.getPurchaseProduct = asyncHandler(async (req, res, next) => {
 exports.updatePurchaseProduct = asyncHandler(async (req, res, next) => {
   const data = req.body;
   data.modifiedAt = Date.now();
+
+  // we have features included , spliting the string
+  if(data.features){
+    const featuresArray = data.features.split(",");
+    data.features = featuresArray;
+  }
+  
   if (req.files) {
     if (req.files.QRCodeImage) {
       // for Image uploading
@@ -601,7 +611,7 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
 
   // MAKING A QUERY
   if (id !== "") {
-    query.productId = id;
+    query.productId = mongoose.Types.ObjectId(id)
   }
   if (custodian !== "") {
     query.custodian = custodian;
@@ -633,8 +643,9 @@ exports.searchPurchaseProduct = asyncHandler(async (req, res, next) => {
   if (purchaseOrder !== "") {
     query.purchaseOrder = purchaseOrder;
   }
-  if (features.length > 0) {
-    query.features = { $all: features }
+  if (features) {
+    const featuresArray = features.split(",");
+    query.features = { $all: featuresArray }
   }
 
 

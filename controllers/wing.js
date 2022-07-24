@@ -75,3 +75,29 @@ exports.deleteWing = asyncHandler(async (req, res, next) => {
     msg: `Wing deleted with id: ${req.params.id}`,
   });
 });
+
+
+exports.wingsSuggestion = asyncHandler(async (req, res, next) => {
+
+  const wing = await Wing.aggregate([
+    
+    {
+      $group:
+      {
+        _id: "$name"
+      }
+    }
+    
+  ]);
+
+  if (!wing.length) {
+    return next(
+      new ErrorResponse(`Wings not found ${req.params.id}`, 404)
+    );
+  }
+  res.status(201).json({
+    success: true,
+    data:wing,
+  });
+});
+

@@ -103,6 +103,52 @@ exports.superUser = asyncHandler(async (req, res, next) => {
 });
 
 
+exports.searchFilters = asyncHandler(async (req, res, next) => {
+
+
+  console.log("The incoming request has",req.body);
+
+  // MAKING VARIABLES NEEDED
+  const role = req.body.role;
+  const name = req.body.name;
+  const email = req.body.email;
+
+
+  const query = {};
+
+  // MAKING A QUERY
+  if (role !== "") {
+    query.role = role;
+  }
+  if (name !== "") {
+    query.userName = name;
+  }
+  if (email !== "") {
+    query.email = email;
+  }
+
+  console.log("The query has", query);
+
+  // FINDING THE RESULTS AGAINTS QUERY
+  let result = await User.find(query);
+  if (!result.length) {
+    return next(
+      new ErrorResponse(
+        `No Results found`,
+        404
+      )
+    );
+  }
+  res.status(201).json({
+    success: true,
+    count: result.length,
+    data: result,
+  });
+
+
+
+});
+
 
 
 const sendTokenResponse = (user, statusCode, res) => {

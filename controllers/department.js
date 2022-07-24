@@ -82,7 +82,7 @@ exports.deleteDepartment = asyncHandler(async (req, res, next) => {
 
 exports.searchDepartment = asyncHandler(async (req, res, next) => {
 
-  console.log("Yes i am getting called  ");
+  console.log("Department Search Filter Is Called");
 
   // MAKING VARIABLES NEEDED
   const departmentId = req.body.departmentId;
@@ -93,7 +93,7 @@ exports.searchDepartment = asyncHandler(async (req, res, next) => {
 
   // MAKING A QUERY
   if (departmentId !== "") {
-    query.department = departmentId;
+    query.department =  mongoose.Types.ObjectId(departmentId);
   }
   if (wingName !== "") {
     query.name = wingName;
@@ -119,8 +119,17 @@ exports.searchDepartment = asyncHandler(async (req, res, next) => {
     {
       $project:
        {
-        departments : "$department"
+        _id:0,
+        department: { $arrayElemAt: [ "$department", 0 ] }
       }
+    },
+    {
+      $project:
+       {
+        _id: "$department._id",
+        name: "$department.name",
+        createdAt: "$department.createdAt"
+        }
     }
 
   ])

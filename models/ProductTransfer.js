@@ -27,10 +27,10 @@ ProductTransferSchema = new mongoose.Schema({
     type: String,
   },
 
-  transferedFrom: {
-    type: String,
-  },
-
+  // transferedFrom: {
+  //   type: String,
+  // },
+  transferedFrom: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
   employId: { type: mongoose.Schema.Types.ObjectId, ref: "Employee" },
   productId: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
   ItemId: { type: mongoose.Schema.Types.ObjectId, ref: "PurchaseProduct" },

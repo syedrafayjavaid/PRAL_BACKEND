@@ -101,6 +101,9 @@ exports.getProductsTransferDetails = asyncHandler(async (req, res, next) => {
         ItemId: "$ItemId",
          quantity: "$quantity",
         transferedFrom:"$transferedFrom",
+        uuid:"$uuid",
+        createdAt:"$createdAt"
+
       
        
       }
@@ -160,6 +163,8 @@ exports.getProductsTransferDetails = asyncHandler(async (req, res, next) => {
 exports.updateProductTransfer = asyncHandler(async (req, res, next) => {
 
 
+  console.log("The Incoming update transfer Req has",req.body)
+
   const body = req.body;
   const ItemId = body.ItemId;
   const UUID = body.uuid;
@@ -199,8 +204,7 @@ exports.updateProductTransfer = asyncHandler(async (req, res, next) => {
 
   // CHECKING IF THE ACTUAL QUANTITY EQUALS OR GREATER THEN SUM OF ALL QUANTITIES IS LESS THAN QUNATITY
   if (stockQuantity >= sumQuantity) {
-
-    const productTransfer = await ProductTransfer.updateOne({ uuid: UUID }, body);
+    const productTransfer = await ProductTransfer.updateOne({ _id: req.body._id }, body);
     res.status(201).json({
       success: true,
       data: productTransfer,
@@ -228,6 +232,8 @@ exports.updateProductTransfer = asyncHandler(async (req, res, next) => {
 
 exports.ProductTransfer = asyncHandler(async (req, res, next) => {
 
+
+  console.log("incoming transfer req has",req.body)
   
   let _id = req.body._id;
 
@@ -245,7 +251,7 @@ exports.ProductTransfer = asyncHandler(async (req, res, next) => {
       // console.log("Pass 2");
       let newTransferData = {};
       newTransferData = req.body
-      newTransferData.transferedFrom = preQuantity.employId;
+      newTransferData.transferedFrom = mongoose.Types.ObjectId(preQuantity.employId);
 
       let reposne = await ProductTransfer.findByIdAndUpdate(_id, newTransferData, {
         new: true,
@@ -287,7 +293,7 @@ exports.ProductTransfer = asyncHandler(async (req, res, next) => {
       // setting null to avoid dublicate value error
       newOne._id = null;
       newOne.uuid = uuid4();
-      newOne.transferedFrom = preQuantity.employId;
+      newOne.transferedFrom = mongoose.Types.ObjectId(preQuantity.employId);
       newOne.transferedTo = "";
 
       const newRecord = await ProductTransfer.create(newOne);
