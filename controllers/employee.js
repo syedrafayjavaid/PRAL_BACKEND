@@ -119,6 +119,8 @@ exports.getEmployee = asyncHandler(async (req, res, next) => {
 });
 
 exports.updateEmployee = asyncHandler(async (req, res, next) => {
+
+  console.log("The incming request has",req.body);
   const data = req.body;
   data.modifiedAt = Date.now();
 
@@ -213,13 +215,13 @@ exports.searchFilters = asyncHandler(async (req, res, next) => {
     query.designation = designation;
   }
   if (location !== "") {
-    query.officeId = parseInt(location);
+    query.officeId = mongoose.Types.ObjectId(location);
   }
   if (pg !== "") {
     query.pg = parseInt(pg);
   }
   if (department !== "") {
-    query.department = department;
+    query.department = mongoose.Types.ObjectId(department);
   }
   if (sDate !== "" && eDate!== "") {
     query.dateOfJoining = { $gte: new Date(startDate), $lte: new Date(endDate) };

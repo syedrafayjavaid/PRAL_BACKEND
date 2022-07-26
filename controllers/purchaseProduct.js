@@ -48,6 +48,7 @@ exports.getAllPurchaseProducts = asyncHandler(async (req, res, next) => {
 
 
 exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
+
   console.log("Purcahase Prod incomming req", req.body);
   const getLastPurchaseProduct = await PurchaseProduct.find({})
     .sort({ _id: -1 })
@@ -491,8 +492,15 @@ exports.updatePurchaseProduct = asyncHandler(async (req, res, next) => {
 
 
 exports.deletePurchaseProduct = asyncHandler(async (req, res, next) => {
+
+  console.log("The incoming req has",req.body);
+  console.log("The incoming req has",req.body);
+  console.log("The incoming req has",req.body);
+
+
+  
   const purchaseProduct = await PurchaseProduct.findByIdAndDelete(
-    req.params.id
+    req.body._id
   );
   if (!purchaseProduct) {
     return next(
@@ -570,6 +578,7 @@ exports.deletePurchaseProduct = asyncHandler(async (req, res, next) => {
 
 
   }
+
 
 });
 

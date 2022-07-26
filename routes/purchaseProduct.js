@@ -17,7 +17,8 @@ const {
 } = require("../controllers/purchaseProduct");
 // router.route("/vendors").get(searchVendors);
 router.route("/").get(getAllPurchaseProducts).post(createPurchaseProduct);
-router.route("/:id").get(getPurchaseProduct).delete(deletePurchaseProduct).put(updatePurchaseProduct);
+router.route("/:id").get(getPurchaseProduct).put(updatePurchaseProduct);
+router.route("/delete/:id").put(deletePurchaseProduct);
 router.route("/createdBySuggestions").post(getCreatedBySuggestion);
 router.route("/vendorsSuggestions").post(getVendorsSuggestion)
 router.route("/searchFilters").post(searchPurchaseProduct);

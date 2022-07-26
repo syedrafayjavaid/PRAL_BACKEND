@@ -91,64 +91,84 @@ exports.searchDepartment = asyncHandler(async (req, res, next) => {
 
   const query = {};
 
+  
+
   // MAKING A QUERY
-  if (departmentId !== "") {
-    query.department =  mongoose.Types.ObjectId(departmentId);
-  }
-  if (wingName !== "") {
-    query.name = wingName;
-  }
-  
-  
-  console.log("The query has", query);
 
-  //FINDING THE RESULTS AGAINTS QUERY
-  const result = await Wing.aggregate([
-    {
-      $match: query
+    if (departmentId !== "" ) {
+      query.department =  mongoose.Types.ObjectId(departmentId);
     }
-    ,
-    {
-      $lookup: {
-        from: "departments",
-        localField: "department",
-        foreignField: "_id",
-        as: "department"
+    if (wingName !== "") {
+      query.name = wingName;
+    }
+  
+    
+    console.log("The query has", query);
+  
+    //FINDING THE RESULTS AGAINTS QUERY
+    const  result = await Wing.aggregate([
+      {
+        $match: query
       }
-    },
-    {
-      $project:
-       {
-        _id:0,
-        department: { $arrayElemAt: [ "$department", 0 ] }
-      }
-    },
-    {
-      $project:
-       {
-        _id: "$department._id",
-        name: "$department.name",
-        createdAt: "$department.createdAt"
+      ,
+      {
+        $lookup: {
+          from: "departments",
+          localField: "department",
+          foreignField: "_id",
+          as: "department"
         }
+      },
+      {
+        $project:
+         {
+          _id:0,
+          department: { $arrayElemAt: [ "$department", 0 ] }
+        }
+      },
+      {
+        $project:
+         {
+          _id: "$department._id",
+          name: "$department.name",
+          createdAt: "$department.createdAt"
+          }
+      },
+      {
+        $group:{
+          _id:"$name",
+          doc:{"$first":"$$ROOT"}
+        }
+      },{
+        $project:{
+          _id:"$doc._id",
+          name: "$doc.name",
+          createdAt: "$doc.createdAt"
+        }
+      }
+  
+    ])
+  
+  
+    
+    if (!result.length) {
+      return next(
+        new ErrorResponse(
+          `No Results found`,
+          404
+        )
+      );
     }
-
-  ])
+    res.status(201).json({
+      success: true,
+      count: result.length,
+      data: result,
+    });
+  
+  
 
 
   
-  if (!result.length) {
-    return next(
-      new ErrorResponse(
-        `No Results found`,
-        404
-      )
-    );
-  }
-  res.status(201).json({
-    success: true,
-    count: result.length,
-    data: result,
-  });
 
 
 
