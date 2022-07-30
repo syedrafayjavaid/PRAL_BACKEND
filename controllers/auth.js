@@ -39,6 +39,9 @@ exports.registerUser = asyncHandler(async (req, res, next) => {
 });
 
 exports.loginUser = asyncHandler(async (req, res, next) => {
+
+
+  console.log("the login req is coming with the body",req.body);
   const { email, password } = req.body;
 
   // validate eamil and password

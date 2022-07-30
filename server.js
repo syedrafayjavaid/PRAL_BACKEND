@@ -6,6 +6,10 @@ const morgan = require("morgan");
 const errorHandler = require("./middleware/error");
 const connectDB = require("./config/db");
 const fileUpload = require("express-fileupload");
+const { spawn } = require("child_process");
+const cron = require('node-cron');
+const schedule = require('node-schedule');
+const  uuid4  = require('uuid4')
 
 // Route files
 const bootcamps = require("./routes/bootcamps");
@@ -72,3 +76,36 @@ process.on("unhandledRejection", (err, promise) => {
     process.exit(1);
   });
 });
+
+
+// database backup process
+
+// Scheduling the backup every night
+schedule.scheduleJob('*/15 * * * *', () => backupMongoDB());
+
+// backup script
+function backupMongoDB() {
+  const DB_NAME = 'F_B_R';
+  const date = new Date().toISOString().split('T')[0]+uuid4();
+  console.log("The date has ",new Date());
+  const ARCHIVE_PATH = path.join(__dirname,'dbBackup',`${DB_NAME + date}.gzip`);
+  const child = spawn('mongodump', [
+    `--db=${DB_NAME}`,
+    `--archive=${ARCHIVE_PATH}`,
+    '--gzip',
+  ]);
+  child.stdout.on('data', (data) => {
+    console.log('stdout:\n', data);
+  });
+  child.stderr.on('data', (data) => {
+    console.log('stderr:\n', Buffer.from(data).toString());
+  });
+  child.on('error', (error) => {
+    console.log('error:\n', error);
+  });
+  child.on('exit', (code, signal) => {
+    if (code) console.log('Process exit with code:', code);
+    else if (signal) console.log('Process killed with signal:', signal);
+    else console.log('Backup is successfull :white_check_mark:');
+  });
+}

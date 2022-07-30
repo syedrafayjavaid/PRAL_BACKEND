@@ -71,7 +71,10 @@ PurchaseProductSchema = new mongoose.Schema({
   modifiedAt: {
     type: Date,
   },
-  inStore: {
+  stockIn: {
+    type: Number,
+  },
+  stockIssued: {
     type: Number,
   },
   features: {

@@ -120,7 +120,7 @@ exports.getEmployee = asyncHandler(async (req, res, next) => {
 
 exports.updateEmployee = asyncHandler(async (req, res, next) => {
 
-  console.log("The incming request has",req.body);
+  console.log("The update body has for employ has incming request has",req.body);
   const data = req.body;
   data.modifiedAt = Date.now();
 

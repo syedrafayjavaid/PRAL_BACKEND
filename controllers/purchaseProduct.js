@@ -100,7 +100,8 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
       // for Files uploading
       const file = req.files.attachment;
       let attachmentArray = [];
-      if (file.length === 1) {
+      if (file.length==undefined) {
+        console.log("inside >>>>>>>>>>>>>>>>>>>>>> 1");
         if (file.size > process.env.MAX_FILE_UPLOAD) {
           return next(
             new ErrorResponse(
@@ -110,7 +111,6 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
           );
         }
         file.name = `file_${uuid4()}${path.parse(file.name).ext}`;
-
         file.mv(
           `${process.env.FILE_UPLOAD_PATH}/${file.name}`,
           asyncHandler(async (err) => {
@@ -120,7 +120,9 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
             }
           })
         );
+        attachmentArray.push(file.name);
       } else if (file.length > 1) {
+        console.log("inside >>>>>>>>>>>>>>>>2");
         file.map((file) => {
           if (file.size > process.env.MAX_FILE_UPLOAD) {
             return next(
@@ -132,7 +134,7 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
           }
           file.name = `file_${uuid4()}${path.parse(file.name).ext}`;
           attachmentArray.push(file.name);
-
+          
           file.mv(
             `${process.env.FILE_UPLOAD_PATH}/${file.name}`,
             asyncHandler(async (err) => {
@@ -146,7 +148,7 @@ exports.createPurchaseProduct = asyncHandler(async (req, res, next) => {
           );
         });
       }
-
+      console.log("The attachment array has ",attachmentArray);
       req.body.attachment = attachmentArray;
     }
   }
@@ -293,6 +295,15 @@ exports.getPurchaseProduct = asyncHandler(async (req, res, next) => {
     console.log("The stockQuantity ", stockQuantity);
     console.log("The availableStock ", availableStock);
 
+
+    // Updating the stock in purchase product database
+      const stockBody = {};
+      stockBody.stockIn = availableStock;
+      stockBody.stockIssued = totalQuantity;
+      const updateInStore = await PurchaseProduct.updateOne({_id:mongoose.Types.ObjectId(req.params.id)},stockBody);
+
+
+
     res.status(200).json({
       success: true,
       data: purchaseProduct,
@@ -302,6 +313,7 @@ exports.getPurchaseProduct = asyncHandler(async (req, res, next) => {
   }
 
 });
+
 
 exports.updatePurchaseProduct = asyncHandler(async (req, res, next) => {
   const data = req.body;

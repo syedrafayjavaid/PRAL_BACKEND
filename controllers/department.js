@@ -8,7 +8,32 @@ const { default: mongoose } = require("mongoose");
 
 
 exports.getDepartments = asyncHandler(async (req, res, next) => {
-  const department = await Department.find();
+
+  // NEW
+  const department = await Department.aggregate([
+    {
+      $lookup:{
+        from:"wings",
+        localField:"_id",
+        foreignField:"department",
+        as:"wings"
+      }
+    },
+    { 
+      $project: { 
+          _id: "$_id",
+          name: "$name",
+          createdAt:"$createdAt" ,
+          modifiedAt:"$modifiedAt",
+          modifiedBy:"$modifiedBy",
+          createdBy:"$createdBy",
+          "wings": { $map: { "input": "$wings", "as": "ar", "in": "$$ar.name" } } }
+  }
+
+  ])
+
+  //OLD
+  // const department = await Department.find();
   res.status(200).json({
     success: true,
     count: department.length,
